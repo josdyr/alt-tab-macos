@@ -114,8 +114,8 @@ class TilesPanel: NSPanel {
             return (
                 min(
                     screen.frame.width * Appearance.maxWidthOnScreen,
-                    readableWidth + Appearance.intraCellPadding * 2 + Appearance.appIconLabelSpacing + Appearance.iconSize
-                    // widthOfLongestTitle + Appearance.intraCellPadding * 2 + Appearance.appIconLabelSpacing + Appearance.iconSize
+                    min(1400, readableWidth * 1.25 + 240) + Appearance.intraCellPadding * 2
+                        + Appearance.appIconLabelSpacing + Appearance.iconSize
                 ) - Appearance.windowPadding * 2
             ).rounded()
         }

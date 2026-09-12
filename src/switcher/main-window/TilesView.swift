@@ -467,7 +467,8 @@ class TilesView {
             appNameMeasurement.stringValue = name
             return appNameMeasurement.cell!.cellSize.width.rounded(.up)
         }.max() ?? 0
-        layoutCache.appNameWidth = min(140, max(layoutCache.appNameWidth, measuredWidth))
+        layoutCache.appNameWidth = AppearanceTestable.appNameColumnWidth(measured: measuredWidth,
+            previous: layoutCache.appNameWidth, rowWidth: TileView.maxThumbnailWidth())
     }
 
     static func currentScrollOrigin() -> CGPoint {

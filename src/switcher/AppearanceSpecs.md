@@ -48,7 +48,7 @@ container-relative corner migration requires separate multi-style testing.
 
 Titles style shows app name, icon, and window title in separate columns. The app
 name column uses the text field cell size, including padding, after automatic font
-sizing and is capped at 140pt. It can grow during a switcher session but does not
+sizing and is capped at 240pt or 25% of the row, whichever is smaller. It can grow during a switcher session but does not
 shrink when filtering; the next session measures afresh. Names use leading
 alignment by default and truncate long names with a full-name tooltip.
 Appearance > Customize more > Right-align app names enables
@@ -105,3 +105,30 @@ independent window results; a slow website must not block an already-ready icon.
 
 The dotfiles `test_live_provider.py` compiles this provider against isolated storage
 and UI stand-ins to exercise file replacement, expiration and session preservation.
+
+## Local selected icon separation
+
+Only a selected Titles row may replace its icon shadow with a compact neutral
+halo. Both native and site icons qualify when at least 60% of their opaque
+silhouette samples have less than 1.5:1 luminance contrast against the actual
+system selection background. White is used for dark backgrounds, black for
+light ones. Increase Contrast uses a stronger, tighter halo. Unselected and
+contrasting icons keep the existing shadow. Artwork and the companion glint are
+not modified. This is a supplementary local affordance, not a claim of WCAG
+compliance or Apple's prescribed icon styling.
+
+Sampling uses a 16px image off the main thread, once per image change in a recycled
+tile. Cycling reuses those results. Delayed results cannot modify a tile that has
+received a different image. Live provider updates must use updateDisplayedAppIcon.
+
+Titles also gains a larger screen-bounded reading area, with the content-width
+allowance capped at 1400pt. The app column reserves at most a quarter of the row;
+most width remains available for single-line window titles. Full-title tooltips
+and app-name alignment preferences remain unchanged.
+
+Primary guidance: [Apple Color](https://developer.apple.com/design/human-interface-guidelines/color)
+recommends sufficient contrast and avoiding overlapping similar colors;
+[W3C non-text contrast](https://www.w3.org/WAI/WCAG21/Understanding/non-text-contrast.html)
+distinguishes necessary graphical information from redundant text-labelled icons.
+Neither prescribes a glow. The 1.5 threshold is a narrowly scoped visual heuristic,
+not the standard's 3:1 requirement.

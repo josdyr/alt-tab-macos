@@ -1,5 +1,8 @@
 ## Local candidate changes (2026-09-12)
 
+- Add selected-icon contrast separation without changing the 24% site-icon glint; widen screen-bounded Titles rows and app-name columns to 240pt or 25% of the row.
+- Log bounded Safari provider fallback reasons and integrate live icon updates with the contrast treatment.
+
 - Connect opt-in local Safari snapshots to Titles icons, accepting only fresh unique title/geometry matches and retaining app-icon fallback.
 
 - Add an aligned app-name column before icons in the local Titles layout, preserving application identity for future per-window icons.

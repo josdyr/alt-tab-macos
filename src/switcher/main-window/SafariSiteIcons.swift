@@ -1,5 +1,6 @@
 import Cocoa
 import ImageIO
+import os.log
 
 /// Local experiment: only fresh, uniquely matched Safari snapshots can replace a Titles icon.
 final class SafariSiteIcons {
@@ -18,6 +19,13 @@ final class SafariSiteIcons {
         var bounds: [Double] { [left, top, width, height] }
     }
     private static let queue = DispatchQueue(label: "local.safari-site-icons", qos: .utility)
+    private static let diagnosticLog = OSLog(subsystem: "com.josdyr.alttab-site-icons", category: "provider")
+    private static var lastDiagnostic: [String: Date] = [:]
+    private static func diagnostic(_ reason: String) {
+        guard Date().timeIntervalSince(lastDiagnostic[reason] ?? .distantPast) >= 10 else { return }
+        lastDiagnostic[reason] = Date()
+        os_log("Icon state: %{public}@", log: diagnosticLog, type: .info, reason)
+    }
     private static var loading = false
     private static var lastLoad = Date.distantPast
     private static var snapshot: Snapshot?
@@ -44,7 +52,7 @@ final class SafariSiteIcons {
         guard SwitcherSession.isActive else { return }
         for view in TilesView.recycledViews {
             guard let window = view.window_, window.application.bundleIdentifier == "com.apple.Safari" else { continue }
-            view.appIcon.updateContents(.cgImage(icon(for: window) ?? window.icon), TileView.iconSize())
+            view.updateDisplayedAppIcon(icon(for: window) ?? window.icon)
         }
     }
 
@@ -60,6 +68,8 @@ final class SafariSiteIcons {
             DispatchQueue.main.async {
                 loading = false
                 let changed = snapshot?.capturedAt != loaded.0?.capturedAt
+                if loaded.0 == nil { diagnostic("snapshot-unavailable-or-expired") }
+                else if loaded.1.isEmpty { diagnostic("snapshot-without-decodable-icons") }
                 snapshot = loaded.0
                 images = loaded.1
                 if changed {
@@ -79,18 +89,20 @@ final class SafariSiteIcons {
     static func icon(for window: Window) -> CGImage? {
         guard UserDefaults.standard.bool(forKey: "localSafariSiteIcons"),
               Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles,
-              let snapshot, isFresh(snapshot.capturedAt), eligible(window) else { return nil }
+              eligible(window) else { return nil }
+        guard let snapshot else { diagnostic("no-snapshot"); return nil }
+        guard isFresh(snapshot.capturedAt) else { diagnostic("snapshot-expired"); return nil }
         let records = snapshot.records.filter { matches($0, window) }
-        guard let record = records.first,
-              records.allSatisfy({ candidate in
+        guard let record = records.first else { diagnostic("title-or-bounds-unmatched"); return nil }
+        guard records.allSatisfy({ candidate in
                   snapshot.records.filter { $0.windowId == candidate.windowId }.count == 1
                       && images[candidate.windowId] != nil
               }),
-              Windows.list.filter({ eligible($0) && matches(record, $0) }).count == records.count else { return nil }
+              Windows.list.filter({ eligible($0) && matches(record, $0) }).count == records.count else { diagnostic("ambiguous-or-missing-image"); return nil }
         // Identical title/bounds cannot identify a window. An identical image across every
         // candidate is nevertheless safe to display; this does not establish window identity.
         if records.count > 1 {
-            guard let png = record.png, records.allSatisfy({ $0.png == png }) else { return nil }
+            guard let png = record.png, records.allSatisfy({ $0.png == png }) else { diagnostic("ambiguous-different-images"); return nil }
         }
         return images[record.windowId]
     }

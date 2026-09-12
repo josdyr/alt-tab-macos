@@ -8,6 +8,8 @@ class TileView: FlippedView {
     var window_: Window?
     var thumbnail = LightImageLayer()
     var appIcon = LightImageLayer()
+    private var sampledIcon: CGImage?
+    private var iconEdgeSamples = [Double]()
     var appIconHighlight = noAnimation { CALayer() }
     var label = TileTitleView(font: Appearance.font)
     var appNameLabel = TileTitleView(font: Appearance.font)
@@ -95,6 +97,7 @@ class TileView: FlippedView {
     }
 
     func drawHighlight() {
+        updateIconSeparation()
         if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles {
             updateSelectionTextColor()
         }
@@ -193,7 +196,7 @@ class TileView: FlippedView {
 
     private func applyShadows() {
         thumbnail.applyShadow(TileView.makeThumbnailShadow(Appearance.imagesShadowColor))
-        appIcon.applyShadow(TileView.makeAppIconShadow(Appearance.imagesShadowColor))
+        updateIconSeparation()
         dockLabelIcon.shadow = TileView.makeShadow(Appearance.imagesShadowColor)
     }
 
@@ -310,8 +313,57 @@ class TileView: FlippedView {
     }
 
     private func updateAppIcon(_ element: Window, _ title: String) {
-        let appIconSize = TileView.iconSize()
-        appIcon.updateContents(.cgImage(SafariSiteIcons.icon(for: element) ?? element.icon), appIconSize)
+        updateDisplayedAppIcon(SafariSiteIcons.icon(for: element) ?? element.icon)
+    }
+
+    func updateDisplayedAppIcon(_ image: CGImage?) {
+        appIcon.updateContents(.cgImage(image), TileView.iconSize())
+        guard sampledIcon !== image else { updateIconSeparation(); return }
+        sampledIcon = image
+        iconEdgeSamples = []
+        updateIconSeparation()
+        guard let image else { return }
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let samples = Self.sampleIconEdges(image)
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.sampledIcon === image else { return }
+                self.iconEdgeSamples = samples
+                self.updateIconSeparation()
+            }
+        }
+    }
+
+    private static func sampleIconEdges(_ image: CGImage) -> [Double] {
+        var bytes = [UInt8](repeating: 0, count: 16 * 16 * 4)
+        let rendered = bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(data: buffer.baseAddress, width: 16, height: 16,
+                                          bitsPerComponent: 8, bytesPerRow: 64,
+                                          space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                                          bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: 16, height: 16))
+            return true
+        }
+        guard rendered else { return [] }
+        return AppearanceTestable.iconEdgeLuminances(bytes, side: 16)
+    }
+
+    private func updateIconSeparation() {
+        let selected = Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles
+            && indexInRecycledViews == SwitcherSession.current?.selectedIndex
+        guard selected, let background = NSColor.selectedContentBackgroundColor.usingColorSpace(.sRGB),
+              AppearanceTestable.needsIconSeparation(iconEdgeSamples, background: [Double(background.redComponent),
+                  Double(background.greenComponent), Double(background.blueComponent)]) else {
+            appIcon.applyShadow(TileView.makeAppIconShadow(Appearance.imagesShadowColor))
+            return
+        }
+        let luminance = AppearanceTestable.relativeLuminance([Double(background.redComponent),
+            Double(background.greenComponent), Double(background.blueComponent)])
+        let color: NSColor = luminance < 0.179 ? .white : .black
+        let shadow = NSShadow()
+        shadow.shadowColor = color.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast ? 0.85 : 0.65)
+        shadow.shadowOffset = .zero
+        shadow.shadowBlurRadius = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast ? 1 : 1.5
+        appIcon.applyShadow(shadow)
     }
 
     private func updateValues(_ element: Window, _ index: Int, _ newHeight: CGFloat) {

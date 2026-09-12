@@ -1,6 +1,39 @@
 import XCTest
 
 final class AppearanceTests: XCTestCase {
+    func testAppNameColumnPreservesSessionWidthWithinBounds() {
+        XCTAssertEqual(AppearanceTestable.appNameColumnWidth(measured: 220, previous: 100, rowWidth: 1000), 220)
+        XCTAssertEqual(AppearanceTestable.appNameColumnWidth(measured: 80, previous: 220, rowWidth: 1000), 220)
+        XCTAssertEqual(AppearanceTestable.appNameColumnWidth(measured: 400, previous: 220, rowWidth: 1000), 240)
+        XCTAssertEqual(AppearanceTestable.appNameColumnWidth(measured: 400, previous: 220, rowWidth: 600), 150)
+    }
+
+    func testIconSeparationUsesBoundaryContrast() {
+        let blue = [0.0, 0.35, 0.9]
+        let blueLuminance = AppearanceTestable.relativeLuminance(blue)
+        XCTAssertTrue(AppearanceTestable.needsIconSeparation([blueLuminance], background: blue))
+        XCTAssertFalse(AppearanceTestable.needsIconSeparation([1], background: blue))
+        XCTAssertFalse(AppearanceTestable.needsIconSeparation([], background: blue))
+        XCTAssertFalse(AppearanceTestable.needsIconSeparation([blueLuminance, 1, 1], background: blue))
+        XCTAssertTrue(AppearanceTestable.needsIconSeparation([1], background: [0.95, 0.95, 0.95]))
+    }
+
+    func testIconSamplingSkipsTransparentMarginsAndCentralArtwork() {
+        var bytes = [UInt8](repeating: 0, count: 5 * 5 * 4)
+        for y in 1...3 {
+            for x in 1...3 {
+                let offset = (y * 5 + x) * 4
+                bytes[offset + 2] = 255
+                bytes[offset + 3] = 255
+            }
+        }
+        for component in 0..<3 { bytes[(2 * 5 + 2) * 4 + component] = 255 }
+        let samples = AppearanceTestable.iconEdgeLuminances(bytes, side: 5)
+        XCTAssertEqual(samples.count, 8)
+        XCTAssertTrue(samples.allSatisfy { abs($0 - 0.0722) < 0.0001 })
+        XCTAssertEqual(AppearanceTestable.iconEdgeLuminances([], side: 5), [])
+    }
+
     // TODO add 6, 7, 8 rowsCount and reuse vertical screens data from bellow
     func testGoodValuesForThumbnailsWidthMinMax() throws {
         var actual: (CGFloat, CGFloat)
