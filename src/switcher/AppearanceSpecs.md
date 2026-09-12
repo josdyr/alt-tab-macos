@@ -86,3 +86,7 @@ Duplicate Safari title/bounds matches may share an icon only when browser/native
 candidate counts agree, browser IDs are unique, every image decodes, and all PNG
 payloads are identical. Conflicting or incomplete groups still fall back. This
 permits two identical BBC windows without claiming a unique window identity.
+
+## Local Titles hover treatment
+
+Titles rows retain the hover background without an outline. Keyboard selection remains solid. Other appearance styles retain their existing border. The additional control for selecting on hover changes selection behavior, not hover feedback.
