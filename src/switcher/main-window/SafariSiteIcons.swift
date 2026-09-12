@@ -53,6 +53,17 @@ final class SafariSiteIcons {
         source.resume()
     }
 
+    private static func establishBindings() {
+        guard let snapshot, isFresh(snapshot.capturedAt) else { return }
+        for window in Windows.list where eligible(window) {
+            let candidates = snapshot.records.filter { matches($0, window) }
+            guard candidates.count == 1, let record = candidates.first, images[record.windowId] != nil,
+                  snapshot.records.filter({ $0.windowId == record.windowId }).count == 1,
+                  Windows.list.filter({ eligible($0) && matches(record, $0) }).count == 1 else { continue }
+            bindings[ObjectIdentifier(window)] = Binding(window: window, browserWindowId: record.windowId)
+        }
+    }
+
     private static func updateVisibleIcons() {
         guard SwitcherSession.isActive else { return }
         for view in TilesView.recycledViews {
@@ -92,6 +103,7 @@ final class SafariSiteIcons {
                           let snapshot = loaded.0 else { return false }
                     return snapshot.records.filter { $0.windowId == binding.browserWindowId }.count == 1
                 }
+                establishBindings()
                 if changed {
                     expiry?.cancel()
                     updateVisibleIcons()

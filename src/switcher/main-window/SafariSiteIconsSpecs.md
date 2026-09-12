@@ -25,3 +25,11 @@ Identical PNG records retain their decoded CGImage identity between snapshots.
 A replacement icon and its sampled edge treatment are applied in one transaction
 with implicit actions disabled. Edge samples must exist before the replacement
 is displayed; no temporary empty-sample shadow state is shown.
+
+## First summon during navigation
+
+Start snapshot observation with application discovery, and establish exact unique
+window bindings on snapshot refresh even while the switcher is closed. Do not
+update tile images while inactive. A later URL title can then use the verified
+binding without requiring a previous switcher invocation. Unseen windows still
+require an exact match before title-independent matching is possible.

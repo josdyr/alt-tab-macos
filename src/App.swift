@@ -477,6 +477,7 @@ class App: AppCenterApplication {
         ScreenLockEvents.observe()
         SleepWakeEvents.observe()
         Applications.initialDiscovery()
+        SafariSiteIcons.refresh()
         // The one initial window inventory; later ones ride events + switcher shows. It belongs here, not in
         // the WindowServer tap: the tap is installed before the permission gate, and this needs `Spaces.refresh`
         // to have run (the sweep bails on an empty Space list). Deferred a beat so it doesn't compete with the
