@@ -345,6 +345,7 @@ class App: AppCenterApplication {
     }
 
     static func showUiOrCycleSelection(_ shortcutIndex: Int, _ forceDoNothingOnRelease_: Bool) {
+        SafariSiteIcons.refresh()
         MainThreadStall.step()
         let session = SwitcherSession.current ?? {
             let new = SwitcherSession()
