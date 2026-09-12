@@ -1,5 +1,7 @@
 ## Local candidate changes (2026-09-12)
 
+- Let held keyboard shortcuts cycle continuously across list and row boundaries, using the existing macOS repeat timing. Trackpad navigation still stops at its boundaries.
+
 - Preserve real window-owner process IDs when macOS supplies pidless app objects, so Device Hub hiding, activation, and cleanup address the tracked process.
 - Draw the selected-window preview border using native concentric corners on macOS 27; retain the previous rendering on older systems.
 
