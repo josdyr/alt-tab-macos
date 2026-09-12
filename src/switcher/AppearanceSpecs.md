@@ -92,3 +92,16 @@ permits two identical BBC windows without claiming a unique window identity.
 Titles rows retain the hover background without an outline. Keyboard selection remains solid. Other appearance styles retain their existing border. The additional control for selecting on hover changes selection behavior, not hover feedback.
 
 Borderless Titles hover uses the system control accent at 18% opacity, or 26% with Increase Contrast, retaining the stronger solid selected row. These are local appearance choices, not asserted WCAG contrast ratios.
+
+## Local Safari icon refresh
+
+The personal Titles provider observes atomic snapshot writes through their parent
+folder and updates only existing Safari icon layers while the switcher is active.
+It must not change selection, scroll, layout or request window screenshots. Reads
+that overlap file events schedule a follow-up. A one-shot deadline restores native
+icons when the existing snapshot freshness limit expires. Identity matching and
+private/ambiguous-window fallbacks are unchanged. The paired companion publishes
+independent window results; a slow website must not block an already-ready icon.
+
+The dotfiles `test_live_provider.py` compiles this provider against isolated storage
+and UI stand-ins to exercise file replacement, expiration and session preservation.

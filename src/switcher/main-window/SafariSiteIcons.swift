@@ -23,9 +23,36 @@ final class SafariSiteIcons {
     private static var snapshot: Snapshot?
     private static var images: [Int: CGImage] = [:]
 
-    static func refresh() {
-        guard UserDefaults.standard.bool(forKey: "localSafariSiteIcons"), !loading,
-              Date().timeIntervalSince(lastLoad) > 1 else { return }
+    private static var watcher: DispatchSourceFileSystemObject?
+    private static var pendingRefresh = false
+    private static var expiry: DispatchWorkItem?
+
+    private static func startWatching() {
+        guard watcher == nil,
+              let directory = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "79YY3FK495.com.josdyr.alttab-site-icons") else { return }
+        let descriptor = open(directory.path, O_EVTONLY)
+        guard descriptor >= 0 else { return }
+        // Observe the directory because atomic snapshot writes replace the file inode.
+        let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: .write, queue: .main)
+        source.setEventHandler { refresh(force: true) }
+        source.setCancelHandler { close(descriptor) }
+        watcher = source
+        source.resume()
+    }
+
+    private static func updateVisibleIcons() {
+        guard SwitcherSession.isActive else { return }
+        for view in TilesView.recycledViews {
+            guard let window = view.window_, window.application.bundleIdentifier == "com.apple.Safari" else { continue }
+            view.appIcon.updateContents(.cgImage(icon(for: window) ?? window.icon), TileView.iconSize())
+        }
+    }
+
+    static func refresh(force: Bool = false) {
+        guard UserDefaults.standard.bool(forKey: "localSafariSiteIcons") else { return }
+        startWatching()
+        if loading { pendingRefresh = pendingRefresh || force; return }
+        guard force || Date().timeIntervalSince(lastLoad) > 1 else { return }
         loading = true
         lastLoad = Date()
         queue.async {
@@ -36,8 +63,15 @@ final class SafariSiteIcons {
                 snapshot = loaded.0
                 images = loaded.1
                 if changed {
-                    App.refreshOpenUiAfterExternalEvent(Windows.list.filter { $0.application.bundleIdentifier == "com.apple.Safari" })
+                    expiry?.cancel()
+                    updateVisibleIcons()
+                    if let snapshot {
+                        let work = DispatchWorkItem { updateVisibleIcons() }
+                        expiry = work
+                        DispatchQueue.main.asyncAfter(deadline: .now() + max(0, snapshot.capturedAt + 60.01 - Date().timeIntervalSince1970), execute: work)
+                    }
                 }
+                if pendingRefresh { pendingRefresh = false; refresh(force: true) }
             }
         }
     }
