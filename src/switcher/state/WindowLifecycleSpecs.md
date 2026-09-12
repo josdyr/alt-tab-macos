@@ -32,3 +32,20 @@ priority or extra same-subsystem query can manufacture that fact.
 - **testAxElementEndWaitsForCrossSourceReconciliation**
 - **testAxReplacementHealsWhileConfirmedCloseRemoves**
 - AX reconciliation policy cases live in `AxObserverHealthTests`.
+
+## Device Hub focus
+
+An existing Device Hub window requests activation of its running application and raises the selected AX
+window on the accessibility command queue. LaunchServices reopen is a fallback when activation or AX raise
+fails, followed by a fresh lookup/raise of that same window. A minimized target is restored first. No
+LaunchServices or Accessibility round trip blocks switcher dismissal on the main thread. Preview cleanup
+runs on main after the command finishes, with no fixed delay.
+
+A later AltTab focus request cancels queued Device Hub work and suppresses its fallback and completion.
+An IPC request already sent to macOS cannot be recalled. Public activation is advisory; API success does not
+guarantee every third-party/Space transition, so actual front-window stacking remains a live verification gate.
+
+Local probe on 2026-09-12: four activate-plus-raise trials moved the existing Device Hub window from second
+to first among normal on-screen windows. Activation and raise returned within 25–42 ms together. The
+comparison reopen returned in 86 ms. These are command timings, not release-to-first-frame measurements;
+the user's roughly one-second preview handoff was not reproduced by the standalone probe.

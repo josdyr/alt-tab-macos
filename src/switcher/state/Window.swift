@@ -5,6 +5,7 @@ import Cocoa
 /// `WindowSurfaceInventory`; native tabs are grouped into logical destinations by `TabGroups`.
 class Window {
     private static var globalCreationCounter = Int.zero
+    private static var pendingDeviceHubFocus: BlockOperation?
 
     /// **The single backing record for every fact the reducer owns** (`TrackedWindow`), held as ONE value so
     /// the bridge moves it whole: `TrackedWindowStateBridge.modelWindow` reads it and `adopt(_:)` takes the
@@ -366,19 +367,14 @@ class Window {
 
     func focus() {
         MainThreadStall.step()
+        Self.pendingDeviceHubFocus?.cancel()
+        Self.pendingDeviceHubFocus = nil
         if let altTabWindow = altTabWindow() {
             App.shared.activate(ignoringOtherApps: true)
             altTabWindow.makeKeyAndOrderFront(nil)
             WindowThumbnails.previewSelectedIfNeeded()
-        } else if application.bundleIdentifier == "com.apple.dt.Devices",
-                  let bundleUrl = application.bundleURL,
-                  NSWorkspace.shared.open(bundleUrl) {
-            // Device Hub can acquire key focus without raising its window via SkyLight.
-            if let cgWindowId {
-                WindowServerEvents.noteAltTabInitiatedFocus(cgWindowId, application.pid)
-                Windows.promoteAttentionEvidence(cgWindowId)
-            }
-            WindowThumbnails.previewSelectedIfNeeded()
+        } else if application.bundleIdentifier == "com.apple.dt.Devices", let bundleUrl = application.bundleURL {
+            focusDeviceHub(bundleUrl)
         } else if self.isWindowlessApp || cgWindowId == nil {
             if let bundleUrl = application.bundleURL, self.isWindowlessApp {
                 if (try? NSWorkspace.shared.launchApplication(at: bundleUrl, configuration: [:])) == nil {
@@ -454,6 +450,42 @@ class Window {
                 }
             }
         }
+    }
+
+    private func focusDeviceHub(_ bundleUrl: URL) {
+        if let cgWindowId {
+            WindowServerEvents.noteAltTabInitiatedFocus(cgWindowId, application.pid)
+            Windows.promoteAttentionEvidence(cgWindowId)
+        }
+        let operation = BlockOperation()
+        Self.pendingDeviceHubFocus = operation
+        let runningApplication = application.runningApplication
+        let cachedElement = axUiElement
+        let minimized = self.isMinimized
+        operation.addExecutionBlock { [weak self, weak operation] in
+            guard let self, let operation, !operation.isCancelled else { return }
+            let element = cachedElement ?? self.refreshedAxElement()
+            if minimized, let element {
+                try? element.setAttribute(kAXMinimizedAttribute, false)
+            }
+            guard !operation.isCancelled else { return }
+            // Raising the selected AX window is required in addition to requesting process activation.
+            // Reopening remains a fallback for Device Hub's incomplete LaunchServices/AX records.
+            let activated = runningApplication.activate(options: [])
+            guard !operation.isCancelled else { return }
+            let raised = element?.raiseWindow() == .success
+            if !activated || !raised {
+                guard !operation.isCancelled else { return }
+                if NSWorkspace.shared.open(bundleUrl), !operation.isCancelled {
+                    (self.refreshedAxElement() ?? element)?.raiseWindow()
+                }
+            }
+            DispatchQueue.main.async {
+                guard !operation.isCancelled else { return }
+                WindowThumbnails.previewSelectedIfNeeded()
+            }
+        }
+        BackgroundWork.accessibilityCommandsQueue.addOperation(operation)
     }
 
     /// For some windows (e.g. Slack) the AX API returns no title, so we fall back to the WindowServer's, and
