@@ -429,6 +429,9 @@ class TilesView {
     }
 
     static func updateItemsAndLayout(_ preservedScrollOrigin: CGPoint?) {
+        layoutCache.appNameWidth = min(140, Windows.list.filter { $0.shouldShowTheUser }.map {
+            (($0.application.localizedName ?? "") as NSString).size(withAttributes: [.font: Appearance.font]).width
+        }.max() ?? 0).rounded(.up)
         var widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         if Preferences.effectiveAppearanceSize(SwitcherSession.activeShortcutIndex) == .auto {
             resolveAutoSize(widthMax)
@@ -731,6 +734,7 @@ class TilesView {
 
     struct LayoutCache {
         var labelHeight = CGFloat(0)
+        var appNameWidth = CGFloat(0)
         var iconWidth = CGFloat(0)
         var iconHeight = CGFloat(0)
         var comfortableReadabilityWidth: CGFloat?

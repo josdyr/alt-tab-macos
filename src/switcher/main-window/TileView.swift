@@ -10,6 +10,12 @@ class TileView: FlippedView {
     var appIcon = LightImageLayer()
     var appIconHighlight = noAnimation { CALayer() }
     var label = TileTitleView(font: Appearance.font)
+    var appNameLabel = TileTitleView(font: Appearance.font)
+    private var appNameColumnWidth: CGFloat {
+        Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles
+            && (UserDefaults.standard.object(forKey: "localAppNameColumn") as? Bool != false)
+            ? TilesView.layoutCache.appNameWidth + Appearance.appIconLabelSpacing : 0
+    }
     var statusIcons = StatusIconsView()
     var dockLabelIcon = TileFontIconView(badgeSize: TileFontIconView.badgeBaseSize(forIconSize: TileView.iconSize().width))
     var windowlessAppIndicator = WindowlessAppIndicator(tooltip: TileView.noOpenWindowToolTip)
@@ -69,6 +75,10 @@ class TileView: FlippedView {
     }
 
     func updateRecycledCellWithNewContent(_ element: Window, _ index: Int, _ newHeight: CGFloat) {
+        appNameLabel.isHidden = appNameColumnWidth == 0
+        appNameLabel.font = Appearance.font
+        appNameLabel.stringValue = element.application.localizedName ?? ""
+        appNameLabel.toolTip = appNameLabel.stringValue
         window_ = element
         indexInRecycledViews = index
         label.toolTip = nil
@@ -115,6 +125,7 @@ class TileView: FlippedView {
             if value == nil { text.addAttribute(.foregroundColor, value: color, range: range) }
         }
         label.attributedStringValue = text
+        appNameLabel.textColor = color
         statusIcons.selectionTextColor = selected ? color : nil
     }
 
@@ -146,6 +157,7 @@ class TileView: FlippedView {
         layer!.addSublayer(thumbnail)
         addSubviews([label, statusIcons])
         setSubviewAbove(windowlessAppIndicator)
+        addSubview(appNameLabel)
         addSubview(dockLabelIcon)
         label.fixHeight()
         // Disable implicit CALayer animations on every subview that moves between styles. The
@@ -414,13 +426,13 @@ class TileView: FlippedView {
 
     private func searchSpanRanges() -> [NSRange] {
         var spanRanges = [NSRange]()
-        if Preferences.showTitles == .appName {
+        if appNameColumnWidth == 0 && Preferences.showTitles == .appName {
             for result in window_?.swAppResults ?? [] {
                 spanRanges.append(NSRange(location: result.span.lowerBound, length: result.span.count))
             }
             return spanRanges
         }
-        if Preferences.showTitles == .appNameAndWindowTitle {
+        if appNameColumnWidth == 0 && Preferences.showTitles == .appNameAndWindowTitle {
             let appName = window_?.application.localizedName ?? ""
             let windowTitle = window_?.title ?? ""
             let offset = (appName.isEmpty || appName == windowTitle) ? 0 : (appName + " - ").count
@@ -550,27 +562,32 @@ class TileView: FlippedView {
         setFrameWidthHeight(newHeight)
         if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) != .appIcons {
             let hWidth = frame.width - Appearance.edgeInsetsSize * 2
-            let labelWidth = hWidth - appIcon.frame.width - Appearance.appIconLabelSpacing - statusIcons.totalWidth
+            let labelWidth = max(0, hWidth - appNameColumnWidth - appIcon.frame.width - Appearance.appIconLabelSpacing - statusIcons.totalWidth)
             label.setWidth(labelWidth)
         }
     }
 
     private func updatePositions(_ newHeight: CGFloat) {
         let edgeInsets = Appearance.edgeInsetsSize
-        assignIfDifferent(&appIcon.frame.origin, NSPoint(x: edgeInsets, y: edgeInsets))
+        assignIfDifferent(&appIcon.frame.origin, NSPoint(x: edgeInsets + appNameColumnWidth, y: edgeInsets))
         if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) != .appIcons {
             let hWidth = frame.width - edgeInsets * 2
             let hHeight = max(appIcon.frame.height, TilesView.layoutCache.labelHeight)
             if App.shared.userInterfaceLayoutDirection == .rightToLeft {
-                assignIfDifferent(&appIcon.frame.origin.x, edgeInsets + hWidth - appIcon.frame.width)
+                assignIfDifferent(&appIcon.frame.origin.x, edgeInsets + hWidth - appNameColumnWidth - appIcon.frame.width)
             }
+            appNameLabel.alignment = App.shared.userInterfaceLayoutDirection == .leftToRight ? .right : .left
+            appNameLabel.frame = NSRect(
+                x: App.shared.userInterfaceLayoutDirection == .leftToRight ? edgeInsets : frame.width - edgeInsets - TilesView.layoutCache.appNameWidth,
+                y: edgeInsets + ((hHeight - TilesView.layoutCache.labelHeight) / 2).rounded(),
+                width: TilesView.layoutCache.appNameWidth, height: TilesView.layoutCache.labelHeight)
             statusIcons.layoutIcons(hWidth: hWidth, hHeight: hHeight, edgeInsets: edgeInsets)
-            let labelWidth = hWidth - appIcon.frame.width - Appearance.appIconLabelSpacing - statusIcons.totalWidth
+            let labelWidth = max(0, hWidth - appNameColumnWidth - appIcon.frame.width - Appearance.appIconLabelSpacing - statusIcons.totalWidth)
             let labelX: CGFloat
             if App.shared.userInterfaceLayoutDirection == .leftToRight {
                 labelX = appIcon.frame.maxX + Appearance.appIconLabelSpacing
             } else {
-                labelX = edgeInsets + hWidth - appIcon.frame.width - Appearance.appIconLabelSpacing - labelWidth
+                labelX = edgeInsets + hWidth - appNameColumnWidth - appIcon.frame.width - Appearance.appIconLabelSpacing - labelWidth
             }
             assignIfDifferent(&label.frame.origin.x, labelX)
             assignIfDifferent(&label.frame.origin.y, edgeInsets + ((hHeight - TilesView.layoutCache.labelHeight) / 2).rounded())
@@ -616,11 +633,12 @@ class TileView: FlippedView {
     }
 
     private func getAppOrAndWindowTitle() -> String {
+        if appNameColumnWidth > 0 { return window_?.title ?? "" }
         let appName = window_?.application.localizedName
         let windowTitle = window_?.title
-        if Preferences.showTitles == .appName {
+        if appNameColumnWidth == 0 && Preferences.showTitles == .appName {
             return appName ?? ""
-        } else if Preferences.showTitles == .appNameAndWindowTitle {
+        } else if appNameColumnWidth == 0 && Preferences.showTitles == .appNameAndWindowTitle {
             if appName == windowTitle {
                 return appName ?? ""
             }

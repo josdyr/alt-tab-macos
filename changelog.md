@@ -1,5 +1,7 @@
 ## Local candidate changes (2026-09-12)
 
+- Add an aligned app-name column before icons in the local Titles layout, preserving application identity for future per-window icons.
+
 - Use a solid system selection fill with contrasting text and status symbols in Titles style, without a selection outline. Keep this personal style change outside upstream PRs.
 
 - Let held keyboard shortcuts cycle continuously across list and row boundaries, using the existing macOS repeat timing. Trackpad navigation still stops at its boundaries.

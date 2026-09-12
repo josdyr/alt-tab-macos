@@ -43,3 +43,18 @@ Review light/dark appearances, selected and unselected rows, search matches, sta
 symbols, and style changes. Row highlights use a continuous corner curve with the
 existing size-dependent radius. Outer panel dimensions and clipping are unchanged;
 container-relative corner migration requires separate multi-style testing.
+
+## Local app identity column
+
+Titles style shows app name, icon, and window title in separate columns. The app
+name column is measured from displayed windows on each layout and capped at 140pt.
+It aligns toward the icon and truncates long names with a full-name tooltip.
+Selected names follow the title selection color. In right-to-left layout the
+column is mirrored. The `localAppNameColumn` Boolean defaults to enabled when
+absent; false restores the prior layout after relaunch. No browser integration
+is included in this patch, and no upstream PR should include the personal layout.
+
+Window title search ranges are kept separate from app-name text. Validate changing
+selection, long app names, long titles, search, mirrored layout and style changes.
+The initial light Titles view was visually checked with Safari, Ghostty and Device
+Hub. Mirrored layout, dark appearance and search remain unverified visually.
