@@ -51,7 +51,19 @@ extension SafariSiteIcons {
   window.application.bundleIdentifier = "other"; precondition(icon(for: window) == nil, "different app"); window.application.bundleIdentifier = "com.apple.Safari"
   Preferences.style = .appIcons; precondition(icon(for: window) == nil, "other style"); Preferences.style = .titles
   images = [:]; precondition(icon(for: window) == nil, "missing image")
-  print("11 production-provider checks passed")
+  let first = Record(windowId: 1, title: "Example", left: 0, top: 0, width: 800, height: 600, png: "same")
+  let second = Record(windowId: 2, title: "Example", left: 0, top: 0, width: 800, height: 600, png: "same")
+  Windows.list = [window, Window()]; images = [1: image, 2: image]
+  snapshot = Snapshot(capturedAt: Date().timeIntervalSince1970, records: [first, second])
+  precondition(icon(for: window) != nil, "identical icons on duplicate windows")
+  let different = Record(windowId: 2, title: "Example", left: 0, top: 0, width: 800, height: 600, png: "different")
+  snapshot = Snapshot(capturedAt: Date().timeIntervalSince1970, records: [first, different])
+  precondition(icon(for: window) == nil, "conflicting duplicate icons")
+  snapshot = Snapshot(capturedAt: Date().timeIntervalSince1970, records: [first, second])
+  images = [1: image]; precondition(icon(for: window) == nil, "duplicate missing decoded image")
+  images = [1: image, 2: image]; Windows.list = [window]
+  precondition(icon(for: window) == nil, "mismatched browser and native counts")
+  print("15 production-provider checks passed")
  }
 }
 SafariSiteIcons.runChecks()

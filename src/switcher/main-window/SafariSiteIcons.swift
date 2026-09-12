@@ -47,9 +47,17 @@ final class SafariSiteIcons {
               Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles,
               let snapshot, isFresh(snapshot.capturedAt), eligible(window) else { return nil }
         let records = snapshot.records.filter { matches($0, window) }
-        guard records.count == 1, let record = records.first,
-              snapshot.records.filter({ $0.windowId == record.windowId }).count == 1,
-              Windows.list.filter({ eligible($0) && matches(record, $0) }).count == 1 else { return nil }
+        guard let record = records.first,
+              records.allSatisfy({ candidate in
+                  snapshot.records.filter { $0.windowId == candidate.windowId }.count == 1
+                      && images[candidate.windowId] != nil
+              }),
+              Windows.list.filter({ eligible($0) && matches(record, $0) }).count == records.count else { return nil }
+        // Identical title/bounds cannot identify a window. An identical image across every
+        // candidate is nevertheless safe to display; this does not establish window identity.
+        if records.count > 1 {
+            guard let png = record.png, records.allSatisfy({ $0.png == png }) else { return nil }
+        }
         return images[record.windowId]
     }
 

@@ -80,3 +80,9 @@ The app group is specific to the local signing team and must not enter an upstre
 PR. Run `python3 scripts/local-tests/test-safari-icons.py` for eleven checks against
 the actual provider with model stubs. Live Safari exported two unambiguous matches
 and one usable 64px NRK icon. Rendering in the integrated build needs a fresh capture.
+
+
+Duplicate Safari title/bounds matches may share an icon only when browser/native
+candidate counts agree, browser IDs are unique, every image decodes, and all PNG
+payloads are identical. Conflicting or incomplete groups still fall back. This
+permits two identical BBC windows without claiming a unique window identity.
