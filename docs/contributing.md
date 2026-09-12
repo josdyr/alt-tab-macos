@@ -164,3 +164,26 @@ In an attempt to not have too many regressions, this documents will list OS inte
 * AltTab is launched after some apps/windows are already opened
 * Displays/mouses/trackpads/keyboards get connected/disconnected while AltTab is used
 * Sudden Termination
+
+## Local Device Hub and preview regression checks
+
+On macOS 27, `NSRunningApplication(processIdentifier:)` can return a Device Hub
+object whose `processIdentifier` is -1. The model must retain the positive PID
+from window discovery. Ignore pidless entries in bulk process discovery; resolve
+Workspace activation and hide/unhide events by running-app identity when their
+PID is unavailable. On termination, release the stored tracked PID's resources.
+
+Live regression: compare `--qa-state` before/after three hide/unhide cycles with
+hidden windows excluded, summoning with `--show=0` and dismissing with `--hide`
+after each transition. Expect exactly one Device Hub application with a positive
+PID; its window is excluded only while hidden. Switching Device Hub then another
+window must leave Device Hub second in recent-use ordering. The local 2026-09-12
+run passed these checks and 67 AttentionDriver, WindowFilterResolver and
+WindowOrderResolver tests on macOS 27.0 (26A428).
+
+The preview outline uses macOS 27 container-concentric radii and a continuous
+layer border. Check the full-size preview corners before releasing the shortcut,
+resize the target, and change appearance. This follows the native preview panel;
+it does not infer arbitrary custom window silhouettes from captured pixels.
+Device Hub was visually checked; custom-shaped/fullscreen windows and earlier
+macOS versions remain unverified. The separate glass-panel workaround is unchanged.

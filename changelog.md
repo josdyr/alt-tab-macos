@@ -1,3 +1,8 @@
+## Local candidate changes (2026-09-12)
+
+- Preserve real window-owner process IDs when macOS supplies pidless app objects, so Device Hub hiding, activation, and cleanup address the tracked process.
+- Draw the selected-window preview border using native concentric corners on macOS 27; retain the previous rendering on older systems.
+
 # [11.6.0](https://github.com/lwouis/alt-tab-macos/compare/v11.5.0...v11.6.0) (2026-09-05)
 
 
