@@ -30,3 +30,16 @@ Mirrors `AppearanceTests.swift` 1:1.
 - **testComfortableWidth** — for every model, the comfortable width fraction matches for both horizontal and vertical screen use.
 - **testComfortableWidthFallsBackToDefaultWhenPhysicalWidthIsNil** — when the screen's physical dimensions aren't reported, fall back to the 0.9 default rather than the 0.45 floor.
 - **testGoodValuesForThumbnailsWidthMinMaxPortrait** — for aspectRatio < 1 (portrait usage), the (min, max) uses the portrait formula and stays within the [0.09, 0.30] clamps.
+
+## Local Titles selection preference
+
+Titles style uses `selectedContentBackgroundColor` and
+`alternateSelectedControlTextColor` for a solid selected row without a border.
+Other styles retain their selection fills and borders. Hover remains distinct.
+Title search-match foreground/background pairs remain intact; selection recoloring
+does not recompute title truncation. Recycled rows restore their unselected color.
+
+Review light/dark appearances, selected and unselected rows, search matches, status
+symbols, and style changes. Row highlights use a continuous corner curve with the
+existing size-dependent radius. Outer panel dimensions and clipping are unchanged;
+container-relative corner migration requires separate multi-style testing.

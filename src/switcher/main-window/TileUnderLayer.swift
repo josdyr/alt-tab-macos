@@ -34,13 +34,15 @@ class TileUnderLayer: CALayer {
         )
         highlightLayer.frame = rect
         highlightLayer.cornerRadius = Appearance.cellCornerRadius
+        let solidSelection = isFocused && Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles
+        highlightLayer.cornerCurve = .continuous
         highlightLayer.backgroundColor = (isFocused
-            ? Appearance.highlightFocusedBackgroundColor
+            ? (solidSelection ? NSColor.selectedContentBackgroundColor : Appearance.highlightFocusedBackgroundColor)
             : Appearance.highlightHoveredBackgroundColor).cgColor
         highlightLayer.borderColor = (isFocused
             ? Appearance.highlightFocusedBorderColor
             : Appearance.highlightHoveredBorderColor).cgColor
-        highlightLayer.borderWidth = Appearance.highlightBorderWidth
+        highlightLayer.borderWidth = solidSelection ? 0 : Appearance.highlightBorderWidth
         highlightLayer.isHidden = false
     }
 }

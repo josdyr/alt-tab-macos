@@ -70,15 +70,24 @@ class TileView: FlippedView {
 
     func updateRecycledCellWithNewContent(_ element: Window, _ index: Int, _ newHeight: CGFloat) {
         window_ = element
+        indexInRecycledViews = index
         label.toolTip = nil
         applyCurrentStyle()
         updateValues(element, index, newHeight)
         updateSizes(newHeight)
         updatePositions(newHeight)
         applySearchHighlight()
+        if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles {
+            updateSelectionTextColor()
+        } else {
+            statusIcons.selectionTextColor = nil
+        }
     }
 
     func drawHighlight() {
+        if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles {
+            updateSelectionTextColor()
+        }
         if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .appIcons {
             let session = SwitcherSession.current
             let isFocused = indexInRecycledViews == (session?.selectedIndex ?? 0)
@@ -96,6 +105,17 @@ class TileView: FlippedView {
             label.isHidden = !shouldBeVisible
             updateAppIconsLabel(isFocused: isFocused, isHovered: isHovered)
         }
+    }
+
+    private func updateSelectionTextColor() {
+        let selected = indexInRecycledViews == SwitcherSession.current?.selectedIndex
+        let color = selected ? NSColor.alternateSelectedControlTextColor : Appearance.fontColor
+        let text = NSMutableAttributedString(attributedString: label.attributedStringValue)
+        text.enumerateAttribute(TileTitleView.searchHighlightBackgroundKey, in: NSRange(location: 0, length: text.length)) { value, range, _ in
+            if value == nil { text.addAttribute(.foregroundColor, value: color, range: range) }
+        }
+        label.attributedStringValue = text
+        statusIcons.selectionTextColor = selected ? color : nil
     }
 
     func updateDockLabelIcon(_ dockLabel: String?) {
