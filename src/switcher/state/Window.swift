@@ -370,6 +370,15 @@ class Window {
             App.shared.activate(ignoringOtherApps: true)
             altTabWindow.makeKeyAndOrderFront(nil)
             WindowThumbnails.previewSelectedIfNeeded()
+        } else if application.bundleIdentifier == "com.apple.dt.Devices",
+                  let bundleUrl = application.bundleURL,
+                  NSWorkspace.shared.open(bundleUrl) {
+            // Device Hub can acquire key focus without raising its window via SkyLight.
+            if let cgWindowId {
+                WindowServerEvents.noteAltTabInitiatedFocus(cgWindowId, application.pid)
+                Windows.promoteAttentionEvidence(cgWindowId)
+            }
+            WindowThumbnails.previewSelectedIfNeeded()
         } else if self.isWindowlessApp || cgWindowId == nil {
             if let bundleUrl = application.bundleURL, self.isWindowlessApp {
                 if (try? NSWorkspace.shared.launchApplication(at: bundleUrl, configuration: [:])) == nil {
