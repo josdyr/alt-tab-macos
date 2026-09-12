@@ -30,6 +30,11 @@ final class SafariSiteIcons {
     private static var lastLoad = Date.distantPast
     private static var snapshot: Snapshot?
     private static var images: [Int: CGImage] = [:]
+    private struct Binding {
+        weak var window: Window?
+        let browserWindowId: Int
+    }
+    private static var bindings: [ObjectIdentifier: Binding] = [:]
 
     private static var watcher: DispatchSourceFileSystemObject?
     private static var pendingRefresh = false
@@ -72,6 +77,11 @@ final class SafariSiteIcons {
                 else if loaded.1.isEmpty { diagnostic("snapshot-without-decodable-icons") }
                 snapshot = loaded.0
                 images = loaded.1
+                bindings = bindings.filter { _, binding in
+                    guard let window = binding.window, Windows.list.contains(where: { $0 === window }), eligible(window),
+                          let snapshot = loaded.0 else { return false }
+                    return snapshot.records.filter { $0.windowId == binding.browserWindowId }.count == 1
+                }
                 if changed {
                     expiry?.cancel()
                     updateVisibleIcons()
@@ -93,7 +103,20 @@ final class SafariSiteIcons {
         guard let snapshot else { diagnostic("no-snapshot"); return nil }
         guard isFresh(snapshot.capturedAt) else { diagnostic("snapshot-expired"); return nil }
         let records = snapshot.records.filter { matches($0, window) }
-        guard let record = records.first else { diagnostic("title-or-bounds-unmatched"); return nil }
+        guard let record = records.first else {
+            // Safari and Accessibility publish navigation titles independently. Once identity
+            // is established, keep using the current record while unique geometry agrees.
+            if let binding = bindings[ObjectIdentifier(window)], binding.window === window,
+               let record = snapshot.records.first(where: { $0.windowId == binding.browserWindowId }),
+               geometryMatches(record, window),
+               snapshot.records.filter({ geometryMatches($0, window) }).count == 1,
+               Windows.list.filter({ eligible($0) && geometryMatches(record, $0) }).count == 1 {
+                diagnostic("bound-window-title-transition")
+                return images[record.windowId]
+            }
+            diagnostic("title-or-bounds-unmatched")
+            return nil
+        }
         guard records.allSatisfy({ candidate in
                   snapshot.records.filter { $0.windowId == candidate.windowId }.count == 1
                       && images[candidate.windowId] != nil
@@ -103,6 +126,9 @@ final class SafariSiteIcons {
         // candidate is nevertheless safe to display; this does not establish window identity.
         if records.count > 1 {
             guard let png = record.png, records.allSatisfy({ $0.png == png }) else { diagnostic("ambiguous-different-images"); return nil }
+        }
+        if records.count == 1 {
+            bindings[ObjectIdentifier(window)] = Binding(window: window, browserWindowId: record.windowId)
         }
         return images[record.windowId]
     }
@@ -114,8 +140,11 @@ final class SafariSiteIcons {
     }
 
     private static func matches(_ record: Record, _ window: Window) -> Bool {
-        guard !record.title.isEmpty, record.title == window.title,
-              let position = window.position, let size = window.size else { return false }
+        !record.title.isEmpty && record.title == window.title && geometryMatches(record, window)
+    }
+
+    private static func geometryMatches(_ record: Record, _ window: Window) -> Bool {
+        guard let position = window.position, let size = window.size else { return false }
         let geometry = [Double(position.x), Double(position.y), Double(size.width), Double(size.height)]
         return record.width > 0 && record.height > 0
             && zip(record.bounds, geometry).allSatisfy { $0.isFinite && $1.isFinite && abs($0 - $1) <= 2 }

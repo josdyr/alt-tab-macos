@@ -8,3 +8,13 @@
 - Live replacement passes through the same tile icon presentation method as initial rendering.
 - Unified logging uses subsystem `com.josdyr.alttab-site-icons`, category `provider`. Fixed reason codes identify absent/expired snapshots, decode failures, title/bounds mismatch and ambiguous candidates. Each reason is limited to once per ten seconds. Logs contain no titles, URLs, image data or window identifiers.
 - The companion exports separate bounded collection diagnostics. A missing icon may be a safe fallback, not a rendering failure. Collection logs and provider logs distinguish those cases.
+
+## Navigation title transitions
+
+After a unique exact title/bounds match, bind the native Window object weakly to
+its Safari window ID. A title mismatch may use that record only while the fresh
+snapshot still contains it and both native and browser geometry are unique.
+Use the current record image, never a saved previous image. Missing records,
+expired snapshots, closed/hidden windows, changed bounds and ambiguous geometry
+must not gain a title-independent match. Duplicate-title image equivalence does
+not create a binding. Provider logs `bound-window-title-transition` without titles.
