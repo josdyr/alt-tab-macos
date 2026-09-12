@@ -1,5 +1,7 @@
 ## Local candidate changes (2026-09-12)
 
+- Fit Titles panel width to visible text and indicators, shrinking after long-title windows close while keeping bounded width.
+
 - Add selected-icon contrast separation without changing the 24% site-icon glint; widen screen-bounded Titles rows and app-name columns to 240pt or 25% of the row.
 - Log bounded Safari provider fallback reasons and integrate live icon updates with the contrast treatment.
 

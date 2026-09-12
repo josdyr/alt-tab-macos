@@ -1,6 +1,10 @@
 import Foundation
 
 class AppearanceTestable {
+    static func fittedTitlesWidth(measured: CGFloat, limit: CGFloat) -> CGFloat {
+        min(max(0, limit), max(320, measured.rounded(.up)))
+    }
+
     static func appNameColumnWidth(measured: CGFloat, previous: CGFloat, rowWidth: CGFloat) -> CGFloat {
         min(240, max(0, rowWidth * 0.25), max(previous, measured))
     }

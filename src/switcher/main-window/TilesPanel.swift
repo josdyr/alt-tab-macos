@@ -111,13 +111,14 @@ class TilesPanel: NSPanel {
     static func maxThumbnailsWidth(_ screen: NSScreen = NSScreen.preferred) -> CGFloat {
         if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles,
            let readableWidth = TilesView.layoutCache.comfortableReadabilityWidth {
-            return (
+            let limit = (
                 min(
                     screen.frame.width * Appearance.maxWidthOnScreen,
                     min(1400, readableWidth * 1.25 + 240) + Appearance.intraCellPadding * 2
                         + Appearance.appIconLabelSpacing + Appearance.iconSize
                 ) - Appearance.windowPadding * 2
             ).rounded()
+            return min(limit, TilesView.layoutCache.fittedTitlesWidth ?? limit)
         }
         return (screen.frame.width * Appearance.maxWidthOnScreen - Appearance.windowPadding * 2).rounded()
     }

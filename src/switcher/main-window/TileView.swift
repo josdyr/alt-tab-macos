@@ -21,6 +21,10 @@ class TileView: FlippedView {
     var statusIcons = StatusIconsView()
     var dockLabelIcon = TileFontIconView(badgeSize: TileFontIconView.badgeBaseSize(forIconSize: TileView.iconSize().width))
     var windowlessAppIndicator = WindowlessAppIndicator(tooltip: TileView.noOpenWindowToolTip)
+    var idealTitlesWidth: CGFloat {
+        fullTitleWidth + appNameColumnWidth + appIcon.frame.width + Appearance.appIconLabelSpacing
+            + statusIcons.totalWidth + Appearance.edgeInsetsSize * 2
+    }
     private var fullTitle = ""
     private var fullTitleWidth = CGFloat(0)
 

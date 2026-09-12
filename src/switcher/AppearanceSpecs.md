@@ -132,3 +132,16 @@ recommends sufficient contrast and avoiding overlapping similar colors;
 distinguishes necessary graphical information from redundant text-labelled icons.
 Neither prescribes a glow. The 1.5 threshold is a narrowly scoped visual heuristic,
 not the standard's 3:1 requirement.
+
+## Content-fitted Titles width
+
+Measure the visible rows after automatic font sizing, including native title-cell
+width, shared app-name column, icons, status indicators and padding. Fit the panel
+to the longest row with a 320pt minimum, always bounded by the screen/readability
+maximum. Recompute on every content layout so closing or renaming the longest
+window can shrink the open panel. Selection changes alone do not change its width.
+App-name measurement can shrink outside search; search retains its existing column
+stability. App names remain capped to 25% of the fitted row and 240pt.
+
+Design reference: [Apple layout guidance](https://developer.apple.com/design/human-interface-guidelines/layout).
+The numeric bounds are local design choices, not Apple-prescribed constants.

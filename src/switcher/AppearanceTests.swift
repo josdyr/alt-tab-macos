@@ -1,6 +1,14 @@
 import XCTest
 
 final class AppearanceTests: XCTestCase {
+    func testTitlesWidthShrinksWithContentAndRespectsScreenLimit() {
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 900, limit: 1000), 900)
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 410.2, limit: 1000), 411)
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 100, limit: 1000), 320)
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 1400, limit: 1000), 1000)
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 100, limit: 250), 250)
+    }
+
     func testAppNameColumnPreservesSessionWidthWithinBounds() {
         XCTAssertEqual(AppearanceTestable.appNameColumnWidth(measured: 220, previous: 100, rowWidth: 1000), 220)
         XCTAssertEqual(AppearanceTestable.appNameColumnWidth(measured: 80, previous: 220, rowWidth: 1000), 220)

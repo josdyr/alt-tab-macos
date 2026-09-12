@@ -431,6 +431,7 @@ class TilesView {
     }
 
     static func updateItemsAndLayout(_ preservedScrollOrigin: CGPoint?) {
+        layoutCache.fittedTitlesWidth = nil
         var widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         if Preferences.effectiveAppearanceSize(SwitcherSession.activeShortcutIndex) == .auto {
             resolveAutoSize(widthMax)
@@ -438,6 +439,8 @@ class TilesView {
             widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         }
         updateAppNameColumnWidth()
+        fitTitlesWidth(widthMax)
+        widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         if let (maxX, maxY, labelHeight, rowSignature) = layoutTileViews(widthMax) {
             layoutParentViews(maxX, widthMax, maxY, labelHeight)
             centerRows(TilesView.thumbnailsWidth)
@@ -468,7 +471,23 @@ class TilesView {
             return appNameMeasurement.cell!.cellSize.width.rounded(.up)
         }.max() ?? 0
         layoutCache.appNameWidth = AppearanceTestable.appNameColumnWidth(measured: measuredWidth,
-            previous: layoutCache.appNameWidth, rowWidth: TileView.maxThumbnailWidth())
+            previous: isSearchModeOn ? layoutCache.appNameWidth : 0, rowWidth: TileView.maxThumbnailWidth())
+    }
+
+    private static func fitTitlesWidth(_ limit: CGFloat) {
+        guard Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles else { return }
+        let height = TileView.height(layoutCache.labelHeight)
+        var measured = CGFloat(0)
+        for (index, window) in Windows.list.enumerated() where Windows.shouldDisplay(window) {
+            guard SwitcherSession.isActive, index < recycledViews.count else { continue }
+            let view = recycledViews[index]
+            view.updateRecycledCellWithNewContent(window, index, height)
+            measured = max(measured, view.idealTitlesWidth)
+        }
+        layoutCache.fittedTitlesWidth = AppearanceTestable.fittedTitlesWidth(
+            measured: measured + Appearance.interCellPadding * 2, limit: limit)
+        layoutCache.appNameWidth = AppearanceTestable.appNameColumnWidth(measured: layoutCache.appNameWidth,
+            previous: 0, rowWidth: TileView.maxThumbnailWidth())
     }
 
     static func currentScrollOrigin() -> CGPoint {
@@ -747,6 +766,7 @@ class TilesView {
     struct LayoutCache {
         var labelHeight = CGFloat(0)
         var appNameWidth = CGFloat(0)
+        var fittedTitlesWidth: CGFloat?
         var iconWidth = CGFloat(0)
         var iconHeight = CGFloat(0)
         var comfortableReadabilityWidth: CGFloat?
