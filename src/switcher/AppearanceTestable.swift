@@ -2,7 +2,7 @@ import Foundation
 
 class AppearanceTestable {
     static func fittedTitlesWidth(measured: CGFloat, limit: CGFloat) -> CGFloat {
-        min(max(0, limit), max(320, measured.rounded(.up)))
+        min(max(0, limit), max(300, measured.rounded(.up)))
     }
 
     static func stableTitlesWidth(measured: CGFloat, limit: CGFloat, previous: CGFloat?, tolerance: CGFloat) -> CGFloat {

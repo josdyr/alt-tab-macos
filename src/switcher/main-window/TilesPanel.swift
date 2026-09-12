@@ -110,7 +110,7 @@ class TilesPanel: NSPanel {
 
     static func maxThumbnailsWidth(_ screen: NSScreen = NSScreen.preferred) -> CGFloat {
         if Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles {
-            let limit = max(0, screen.visibleFrame.width * 0.9 - Appearance.windowPadding * 2).rounded()
+            let limit = max(0, screen.visibleFrame.width * 0.85 - Appearance.windowPadding * 2).rounded()
             return min(limit, TilesView.layoutCache.fittedTitlesWidth ?? limit)
         }
         return (screen.frame.width * Appearance.maxWidthOnScreen - Appearance.windowPadding * 2).rounded()

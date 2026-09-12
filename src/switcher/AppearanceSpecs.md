@@ -137,7 +137,7 @@ not the standard's 3:1 requirement.
 
 Measure the visible rows after automatic font sizing, including native title-cell
 width, shared app-name column, icons, status indicators and padding. Fit the panel
-to the longest row with a 320pt minimum, always bounded by the screen/readability
+to the longest row with a 300pt minimum, always bounded by the screen/readability
 maximum. Recompute on every content layout so closing or renaming the longest
 window can shrink the open panel. Selection changes alone do not change its width.
 App-name measurement can shrink outside search; search retains its existing column
@@ -160,5 +160,5 @@ an Apple-prescribed timing or spacing rule.
 
 Titles use the entire fitted row, not the thumbnail layout's 90% row fraction.
 Applying that fraction after measuring removes text space and falsely truncates
-otherwise fitting titles. The panel's maximum is 90% of the visible screen width,
+otherwise fitting titles. The panel's maximum is 85% of the visible screen width,
 including outer panel padding. Text can still truncate at that physical limit.
