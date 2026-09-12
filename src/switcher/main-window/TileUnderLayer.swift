@@ -36,10 +36,13 @@ class TileUnderLayer: CALayer {
         highlightLayer.cornerRadius = Appearance.cellCornerRadius
         let titlesStyle = Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles
         let solidSelection = isFocused && titlesStyle
+        let hoverBackground = titlesStyle
+            ? NSColor.controlAccentColor.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast ? 0.26 : 0.18)
+            : Appearance.highlightHoveredBackgroundColor
         highlightLayer.cornerCurve = .continuous
         highlightLayer.backgroundColor = (isFocused
             ? (solidSelection ? NSColor.selectedContentBackgroundColor : Appearance.highlightFocusedBackgroundColor)
-            : Appearance.highlightHoveredBackgroundColor).cgColor
+            : hoverBackground).cgColor
         highlightLayer.borderColor = (isFocused
             ? Appearance.highlightFocusedBorderColor
             : Appearance.highlightHoveredBorderColor).cgColor

@@ -90,3 +90,5 @@ permits two identical BBC windows without claiming a unique window identity.
 ## Local Titles hover treatment
 
 Titles rows retain the hover background without an outline. Keyboard selection remains solid. Other appearance styles retain their existing border. The additional control for selecting on hover changes selection behavior, not hover feedback.
+
+Borderless Titles hover uses the system control accent at 18% opacity, or 26% with Increase Contrast, retaining the stronger solid selected row. These are local appearance choices, not asserted WCAG contrast ratios.
