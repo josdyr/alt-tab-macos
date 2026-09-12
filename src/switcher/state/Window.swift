@@ -457,35 +457,70 @@ class Window {
             WindowServerEvents.noteAltTabInitiatedFocus(cgWindowId, application.pid)
             Windows.promoteAttentionEvidence(cgWindowId)
         }
+        let requestedAt = ProcessInfo.processInfo.systemUptime
         let operation = BlockOperation()
+        operation.queuePriority = .veryHigh
         Self.pendingDeviceHubFocus = operation
         let runningApplication = application.runningApplication
         let cachedElement = axUiElement
         let minimized = self.isMinimized
-        operation.addExecutionBlock { [weak self, weak operation] in
-            guard let self, let operation, !operation.isCancelled else { return }
-            let element = cachedElement ?? self.refreshedAxElement()
+        let pid = application.pid
+        let wid = cgWindowId
+        operation.addExecutionBlock { [weak operation] in
+            guard let operation, !operation.isCancelled else { return }
+            let startedAt = ProcessInfo.processInfo.systemUptime
+            let activated = runningApplication.activate(options: [])
+            let activatedAt = ProcessInfo.processInfo.systemUptime
+            guard !operation.isCancelled else { return }
+            if activated, let wid, Self.isFrontmostNormalWindow(wid) {
+                DispatchQueue.main.async {
+                    guard !operation.isCancelled, !SwitcherSession.isActive else { return }
+                    WindowThumbnails.previewSelectedIfNeeded()
+                    let elapsed = Int((ProcessInfo.processInfo.systemUptime - requestedAt) * 1000)
+                    Logger.info { "Device Hub preview dismissal after verified window raise: \(elapsed)ms" }
+                }
+            }
+            // The remote-token fallback can scan for hundreds of milliseconds. Activation must not
+            // wait for that scan; a published-window lookup is sufficient before the reopen fallback.
+            func publishedElement() -> AXUIElement? {
+                guard let wid else { return nil }
+                return WindowElementAcquisition.element(for: wid, pid: pid, route: .currentSpaceViaApplicationWindows)
+            }
+            let element = cachedElement ?? publishedElement()
             if minimized, let element {
                 try? element.setAttribute(kAXMinimizedAttribute, false)
             }
             guard !operation.isCancelled else { return }
-            // Raising the selected AX window is required in addition to requesting process activation.
-            // Reopening remains a fallback for Device Hub's incomplete LaunchServices/AX records.
-            let activated = runningApplication.activate(options: [])
-            guard !operation.isCancelled else { return }
             let raised = element?.raiseWindow() == .success
+            let raisedAt = ProcessInfo.processInfo.systemUptime
+            var reopened = false
             if !activated || !raised {
                 guard !operation.isCancelled else { return }
-                if NSWorkspace.shared.open(bundleUrl), !operation.isCancelled {
-                    (self.refreshedAxElement() ?? element)?.raiseWindow()
+                reopened = NSWorkspace.shared.open(bundleUrl)
+                if reopened, !operation.isCancelled {
+                    (publishedElement() ?? element)?.raiseWindow()
                 }
             }
+            let completedAt = ProcessInfo.processInfo.systemUptime
             DispatchQueue.main.async {
                 guard !operation.isCancelled else { return }
                 WindowThumbnails.previewSelectedIfNeeded()
+                let displayedAt = ProcessInfo.processInfo.systemUptime
+                Logger.info {
+                    "Device Hub focus ms queue:\(Int((startedAt - requestedAt) * 1000)) activate:\(Int((activatedAt - startedAt) * 1000)) AX:\(Int((raisedAt - activatedAt) * 1000)) reopen:\(Int((completedAt - raisedAt) * 1000)) main:\(Int((displayedAt - completedAt) * 1000)) activated:\(activated) raised:\(raised) reopened:\(reopened)"
+                }
             }
         }
         BackgroundWork.accessibilityCommandsQueue.addOperation(operation)
+    }
+
+    private static func isFrontmostNormalWindow(_ wid: CGWindowID) -> Bool {
+        guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]],
+              let first = windows.first(where: {
+                  ($0[kCGWindowLayer as String] as? Int) == 0
+                      && ($0[kCGWindowOwnerPID as String] as? pid_t) != ProcessInfo.processInfo.processIdentifier
+              }) else { return false }
+        return (first[kCGWindowNumber as String] as? CGWindowID) == wid
     }
 
     /// For some windows (e.g. Slack) the AX API returns no title, so we fall back to the WindowServer's, and

@@ -49,3 +49,15 @@ Local probe on 2026-09-12: four activate-plus-raise trials moved the existing De
 to first among normal on-screen windows. Activation and raise returned within 25–42 ms together. The
 comparison reopen returned in 86 ms. These are command timings, not release-to-first-frame measurements;
 the user's roughly one-second preview handoff was not reproduced by the standalone probe.
+
+Device Hub preview handoff starts activation before any AX lookup. A single off-main WindowServer stack
+read may confirm that the exact selected window is already first among normal windows, excluding AltTab.
+Only that confirmation permits early preview dismissal; an unknown/different top window retains the preview
+until the focus command completes. This is not a polling loop, and the next switcher session/focus request
+invalidates the early dismissal. No remote-token brute-force scan runs on this activation path.
+
+The command has high queue priority and logs queue wait, activation, AX/stack verification, reopen, and main
+completion durations at info level. This distinguishes a busy Accessibility service (global timeout: one
+second), queue contention, and delayed main-thread preview cleanup. An already-running IPC cannot be
+cancelled or guaranteed instantaneous. End-to-end preview timing remains to be measured with the installed
+build; standalone API timings are not proof of that handoff.
