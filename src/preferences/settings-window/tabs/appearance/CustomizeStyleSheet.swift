@@ -7,10 +7,13 @@ class CustomizeStyleSheet: SheetWindow {
     private static let labelShowTitles = NSLocalizedString("Show titles", comment: "")
     private static let labelTitleTruncation = NSLocalizedString("Title truncation", comment: "")
 
+    private static let labelAppNameAlignment = NSLocalizedString("Right-align app names", comment: "")
+
     /// Pre-build search index for the open-button. See `SettingsSearchIndex.sheetSearchableStrings`.
     static let searchableStrings: [String] = [
         labelShowTitles,
         labelTitleTruncation,
+        labelAppNameAlignment,
         ShowHideIllustratedView.hideStatusIconsLabel,
         ShowHideIllustratedView.hideStatusIconsSubtitle,
         ShowHideIllustratedView.hideSpaceNumberLabelsLabel,
@@ -46,6 +49,16 @@ class CustomizeStyleSheet: SheetWindow {
         let titleTruncation = TableGroupView.Row(leftTitle: Self.labelTitleTruncation,
             rightViews: LabelAndControl.makeRadioButtons("titleTruncation", TitleTruncationPreference.allCases))
         advancedTable.addRow(titleTruncation)
+        let checkbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
+        checkbox.translatesAutoresizingMaskIntoConstraints = false
+        checkbox.identifier = NSUserInterfaceItemIdentifier("localAppNameTrailingAlignment")
+        checkbox.state = UserDefaults.standard.bool(forKey: "localAppNameTrailingAlignment") ? .on : .off
+        checkbox.toolTip = NSLocalizedString("Titles style: align app names toward their icons. Mirrored in right-to-left layouts. Applies the next time you open the switcher.", comment: "")
+        checkbox.setAccessibilityLabel(Self.labelAppNameAlignment)
+        checkbox.onAction = { control in
+            UserDefaults.standard.set((control as! NSButton).state == .on, forKey: "localAppNameTrailingAlignment")
+        }
+        advancedTable.addRow(leftText: Self.labelAppNameAlignment, rightViews: [checkbox])
         advancedTable.onMouseExited = { [weak self] event, view in
             guard let self else { return }
             IllustratedImageThemeView.resetImage(self.illustratedImageView, event, view)

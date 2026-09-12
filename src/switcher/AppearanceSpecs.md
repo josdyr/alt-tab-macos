@@ -50,7 +50,11 @@ Titles style shows app name, icon, and window title in separate columns. The app
 name column uses the text field cell size, including padding, after automatic font
 sizing and is capped at 140pt. It can grow during a switcher session but does not
 shrink when filtering; the next session measures afresh. Names use leading
-alignment and truncate long names with a full-name tooltip.
+alignment by default and truncate long names with a full-name tooltip.
+Appearance > Customize more > Right-align app names enables
+`localAppNameTrailingAlignment`, aligning names toward the icon column. This
+mirrors to left alignment in right-to-left layouts and applies on the next summon.
+The toggle does not alter shared width measurement, filtering or font sizing.
 Selected names follow the title selection color. In right-to-left layout the
 column is mirrored. The `localAppNameColumn` Boolean defaults to enabled when
 absent; false restores the prior layout after relaunch. No browser integration
