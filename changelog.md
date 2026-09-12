@@ -1,5 +1,7 @@
 ## Local candidate changes (2026-09-12)
 
+- Use the full fitted width for Titles rows, removing premature ellipses, and allow growth to 90% of the visible screen.
+
 - Absorb tiny title/spinner width changes with bounded spare space while preserving live growth and shrinkage.
 
 - Fit Titles panel width to visible text and indicators, shrinking after long-title windows close while keeping bounded width.

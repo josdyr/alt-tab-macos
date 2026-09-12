@@ -155,3 +155,10 @@ shrink when materially less space is required. Clamp to screen limits even if th
 previous width was larger. Reset this width history each summon. Titles themselves
 continue updating immediately. This hysteresis is a local usability choice, not
 an Apple-prescribed timing or spacing rule.
+
+### Titles row width must equal fitted content width
+
+Titles use the entire fitted row, not the thumbnail layout's 90% row fraction.
+Applying that fraction after measuring removes text space and falsely truncates
+otherwise fitting titles. The panel's maximum is 90% of the visible screen width,
+including outer panel padding. Text can still truncate at that physical limit.
