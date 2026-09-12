@@ -75,8 +75,18 @@ final class SafariSiteIcons {
                 let changed = snapshot?.capturedAt != loaded.0?.capturedAt
                 if loaded.0 == nil { diagnostic("snapshot-unavailable-or-expired") }
                 else if loaded.1.isEmpty { diagnostic("snapshot-without-decodable-icons") }
+                var nextImages = loaded.1
+                if let incoming = loaded.0, let previous = snapshot {
+                    for record in incoming.records {
+                        let old = previous.records.filter { $0.windowId == record.windowId }
+                        if old.count == 1, let png = record.png, old[0].png == png,
+                           let image = images[record.windowId] {
+                            nextImages[record.windowId] = image
+                        }
+                    }
+                }
                 snapshot = loaded.0
-                images = loaded.1
+                images = nextImages
                 bindings = bindings.filter { _, binding in
                     guard let window = binding.window, Windows.list.contains(where: { $0 === window }), eligible(window),
                           let snapshot = loaded.0 else { return false }

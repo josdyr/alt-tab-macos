@@ -18,3 +18,10 @@ Use the current record image, never a saved previous image. Missing records,
 expired snapshots, closed/hidden windows, changed bounds and ambiguous geometry
 must not gain a title-independent match. Duplicate-title image equivalence does
 not create a binding. Provider logs `bound-window-title-transition` without titles.
+
+## Stable image presentation
+
+Identical PNG records retain their decoded CGImage identity between snapshots.
+A replacement icon and its sampled edge treatment are applied in one transaction
+with implicit actions disabled. Edge samples must exist before the replacement
+is displayed; no temporary empty-sample shadow state is shown.

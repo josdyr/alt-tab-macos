@@ -321,20 +321,15 @@ class TileView: FlippedView {
     }
 
     func updateDisplayedAppIcon(_ image: CGImage?) {
-        appIcon.updateContents(.cgImage(image), TileView.iconSize())
-        guard sampledIcon !== image else { updateIconSeparation(); return }
-        sampledIcon = image
-        iconEdgeSamples = []
-        updateIconSeparation()
-        guard let image else { return }
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            let samples = Self.sampleIconEdges(image)
-            DispatchQueue.main.async { [weak self] in
-                guard let self, self.sampledIcon === image else { return }
-                self.iconEdgeSamples = samples
-                self.updateIconSeparation()
-            }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        if sampledIcon !== image {
+            sampledIcon = image
+            iconEdgeSamples = image.map(Self.sampleIconEdges) ?? []
         }
+        appIcon.updateContents(.cgImage(image), TileView.iconSize())
+        updateIconSeparation()
     }
 
     private static func sampleIconEdges(_ image: CGImage) -> [Double] {
