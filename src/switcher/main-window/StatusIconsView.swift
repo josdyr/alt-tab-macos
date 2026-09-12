@@ -117,20 +117,7 @@ class StatusIconsView: FlippedView {
         tooltipsDirty = false
         removeAllToolTips()
         tooltipStrings.removeAll()
-        let iconWidth = TilesView.layoutCache.iconWidth
-        let iconHeight = TilesView.layoutCache.iconHeight
-        let isLTR = App.shared.userInterfaceLayoutDirection == .leftToRight
-        let yOffset = ((frame.height - iconHeight) / 2).rounded()
-        var offset = CGFloat(0)
-        for icon in icons {
-            guard icon.visible else { continue }
-            offset += iconWidth
-            let x = isLTR ? frame.width - offset : offset - iconWidth
-            if let tooltip = icon.tooltip {
-                let tag = addToolTip(NSRect(x: x, y: yOffset, width: iconWidth, height: iconHeight), owner: self, userData: nil)
-                tooltipStrings[tag] = tooltip
-            }
-        }
+        setAccessibilityHelp(icons.filter { $0.visible }.compactMap { $0.tooltip }.joined(separator: ", "))
     }
 
     @objc func view(_ view: NSView, stringForToolTip tag: NSView.ToolTipTag, point: NSPoint, userData data: UnsafeMutableRawPointer?) -> String {

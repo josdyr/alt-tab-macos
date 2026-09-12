@@ -50,7 +50,7 @@ Titles style shows app name, icon, and window title in separate columns. The app
 name column uses the text field cell size, including padding, after automatic font
 sizing and is capped at 240pt or 25% of the row, whichever is smaller. It can grow during a switcher session but does not
 shrink when filtering; the next session measures afresh. Names use leading
-alignment by default and truncate long names with a full-name tooltip.
+alignment by default and truncate long names without hover tooltips.
 Appearance > Customize more > Right-align app names enables
 `localAppNameTrailingAlignment`, aligning names toward the icon column. This
 mirrors to left alignment in right-to-left layouts and applies on the next summon.
@@ -91,7 +91,7 @@ permits two identical BBC windows without claiming a unique window identity.
 
 Titles rows retain the hover background without an outline. Keyboard selection remains solid. Other appearance styles retain their existing border. The additional control for selecting on hover changes selection behavior, not hover feedback.
 
-Borderless Titles hover uses the system control accent at 18% opacity, or 26% with Increase Contrast, retaining the stronger solid selected row. These are local appearance choices, not asserted WCAG contrast ratios.
+Borderless Titles hover uses the system control accent at 26% opacity, or 34% with Increase Contrast, retaining the stronger solid selected row. These are local appearance choices, not asserted WCAG contrast ratios.
 
 ## Local Safari icon refresh
 
@@ -123,8 +123,8 @@ received a different image. Live provider updates must use updateDisplayedAppIco
 
 Titles also gains a larger screen-bounded reading area, with the content-width
 allowance capped at 1400pt. The app column reserves at most a quarter of the row;
-most width remains available for single-line window titles. Full-title tooltips
-and app-name alignment preferences remain unchanged.
+most width remains available for single-line window titles. Full titles remain available to accessibility; app-name alignment preferences
+remain unchanged.
 
 Primary guidance: [Apple Color](https://developer.apple.com/design/human-interface-guidelines/color)
 recommends sufficient contrast and avoiding overlapping similar colors;
@@ -175,3 +175,9 @@ the existing settings system. Imported out-of-range values are clamped on read.
 On small screens the maximum always wins over the minimum and spare room. The
 existing live growth/shrink hysteresis remains; these controls do not force a
 fixed width. Other styles retain their existing layout.
+
+## Switcher help without hover popups
+
+Switcher titles, app names and status indicators do not install mouse-over
+tooltips. Accessibility labels/help remain available, including full titles.
+Truncated titles no longer expand in a hover popup. Settings help is unchanged.

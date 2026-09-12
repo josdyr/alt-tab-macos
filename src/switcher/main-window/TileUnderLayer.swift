@@ -37,7 +37,7 @@ class TileUnderLayer: CALayer {
         let titlesStyle = Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles
         let solidSelection = isFocused && titlesStyle
         let hoverBackground = titlesStyle
-            ? NSColor.controlAccentColor.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast ? 0.26 : 0.18)
+            ? NSColor.controlAccentColor.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast ? 0.34 : 0.26)
             : Appearance.highlightHoveredBackgroundColor
         highlightLayer.cornerCurve = .continuous
         highlightLayer.backgroundColor = (isFocused

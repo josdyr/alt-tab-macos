@@ -62,7 +62,7 @@ class TileView: FlippedView {
 
     private func updateLabelTooltipIfNeeded() {
         guard Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) != .appIcons else { return }
-        label.toolTip = fullTitleWidth >= label.frame.size.width ? fullTitle : nil
+        label.toolTip = nil
     }
 
     convenience init() {
@@ -84,7 +84,7 @@ class TileView: FlippedView {
         appNameLabel.isHidden = appNameColumnWidth == 0
         appNameLabel.font = Appearance.font
         appNameLabel.stringValue = element.application.localizedName ?? ""
-        appNameLabel.toolTip = appNameLabel.stringValue
+        appNameLabel.toolTip = nil
         window_ = element
         indexInRecycledViews = index
         label.toolTip = nil
@@ -312,7 +312,7 @@ class TileView: FlippedView {
         let yPosition = appIcon.frame.maxY + Appearance.intraCellPadding * 2
         label.frame = NSRect(x: xPosition, y: yPosition, width: effectiveLabelWidth, height: height)
         label.setWidth(effectiveLabelWidth)
-        label.toolTip = labelWidth >= label.frame.size.width ? fullTitle : nil
+        label.toolTip = nil
         applySearchHighlight()
     }
 
