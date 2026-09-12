@@ -20,9 +20,16 @@ final class AppearanceTests: XCTestCase {
     func testTitlesWidthShrinksWithContentAndRespectsScreenLimit() {
         XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 900, limit: 1000), 900)
         XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 410.2, limit: 1000), 411)
-        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 100, limit: 1000), 320)
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 100, limit: 1000), 300)
         XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 1400, limit: 1000), 1000)
         XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 100, limit: 250), 250)
+    }
+
+    func testCustomTitlesMinimumStillHonorsScreenLimitAndHysteresis() {
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 100, limit: 1000, minimum: 600), 600)
+        XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 100, limit: 400, minimum: 600), 400)
+        XCTAssertEqual(AppearanceTestable.stableTitlesWidth(measured: 100, limit: 1000, previous: 350, tolerance: 32, minimum: 600), 632)
+        XCTAssertEqual(AppearanceTestable.stableTitlesWidth(measured: 100, limit: 1000, previous: 632, tolerance: 32, minimum: 240), 272)
     }
 
     func testAppNameColumnPreservesSessionWidthWithinBounds() {

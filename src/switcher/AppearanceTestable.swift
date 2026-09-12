@@ -1,12 +1,12 @@
 import Foundation
 
 class AppearanceTestable {
-    static func fittedTitlesWidth(measured: CGFloat, limit: CGFloat) -> CGFloat {
-        min(max(0, limit), max(300, measured.rounded(.up)))
+    static func fittedTitlesWidth(measured: CGFloat, limit: CGFloat, minimum: CGFloat = 300) -> CGFloat {
+        min(max(0, limit), max(max(0, minimum), measured.rounded(.up)))
     }
 
-    static func stableTitlesWidth(measured: CGFloat, limit: CGFloat, previous: CGFloat?, tolerance: CGFloat) -> CGFloat {
-        let required = fittedTitlesWidth(measured: measured, limit: limit)
+    static func stableTitlesWidth(measured: CGFloat, limit: CGFloat, previous: CGFloat?, tolerance: CGFloat, minimum: CGFloat = 300) -> CGFloat {
+        let required = fittedTitlesWidth(measured: measured, limit: limit, minimum: minimum)
         let slack = max(0, tolerance)
         if let previous, previous <= limit, previous >= required, previous - required <= slack * 2 {
             return previous

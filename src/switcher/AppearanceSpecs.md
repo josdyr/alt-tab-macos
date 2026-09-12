@@ -137,7 +137,7 @@ not the standard's 3:1 requirement.
 
 Measure the visible rows after automatic font sizing, including native title-cell
 width, shared app-name column, icons, status indicators and padding. Fit the panel
-to the longest row with a 300pt minimum, always bounded by the screen/readability
+to the longest row with a configurable minimum (300pt by default), bounded by the screen/readability
 maximum. Recompute on every content layout so closing or renaming the longest
 window can shrink the open panel. Selection changes alone do not change its width.
 App-name measurement can shrink outside search; search retains its existing column
@@ -160,5 +160,18 @@ an Apple-prescribed timing or spacing rule.
 
 Titles use the entire fitted row, not the thumbnail layout's 90% row fraction.
 Applying that fraction after measuring removes text space and falsely truncates
-otherwise fitting titles. The panel's maximum is 85% of the visible screen width,
+otherwise fitting titles. The panel's default maximum is 90% of the visible screen width,
 including outer panel padding. Text can still truncate at that physical limit.
+
+
+### Titles width controls
+
+Appearance > Customize exposes native Minimum width and Maximum width sliders
+when Titles is selected. Minimum content width ranges from 240 to 600pt (default
+300); maximum panel width ranges from 50 to 95% of the visible screen (default 90%).
+Descriptions distinguish content points from screen percentage. Controls are
+keyboard-accessible and searchable. Preferences persist and export/import through
+the existing settings system. Imported out-of-range values are clamped on read.
+On small screens the maximum always wins over the minimum and spare room. The
+existing live growth/shrink hysteresis remains; these controls do not force a
+fixed width. Other styles retain their existing layout.

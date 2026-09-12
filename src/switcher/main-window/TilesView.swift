@@ -488,7 +488,7 @@ class TilesView {
         }
         layoutCache.fittedTitlesWidth = AppearanceTestable.stableTitlesWidth(
             measured: measured + Appearance.interCellPadding * 2, limit: limit,
-            previous: previous, tolerance: max(24, Appearance.font.pointSize * 2))
+            previous: previous, tolerance: max(24, Appearance.font.pointSize * 2), minimum: Preferences.titlesMinimumWidth)
         layoutCache.appNameWidth = AppearanceTestable.appNameColumnWidth(measured: layoutCache.appNameWidth,
             previous: 0, rowWidth: TileView.maxThumbnailWidth())
     }
