@@ -7,6 +7,8 @@ final class SafariSiteIcons {
     struct Snapshot: Decodable {
         let capturedAt: Double
         let records: [Record]
+        let resetIcons: Bool?
+        let clearWindowIds: [Int]?
     }
     struct Record: Decodable {
         let windowId: Int
@@ -33,6 +35,7 @@ final class SafariSiteIcons {
     private struct Binding {
         weak var window: Window?
         let browserWindowId: Int
+        let image: CGImage
     }
     private static var bindings: [ObjectIdentifier: Binding] = [:]
 
@@ -60,7 +63,7 @@ final class SafariSiteIcons {
             guard candidates.count == 1, let record = candidates.first, images[record.windowId] != nil,
                   snapshot.records.filter({ $0.windowId == record.windowId }).count == 1,
                   Windows.list.filter({ eligible($0) && matches(record, $0) }).count == 1 else { continue }
-            bindings[ObjectIdentifier(window)] = Binding(window: window, browserWindowId: record.windowId)
+            bindings[ObjectIdentifier(window)] = Binding(window: window, browserWindowId: record.windowId, image: images[record.windowId]!)
         }
     }
 
@@ -99,9 +102,9 @@ final class SafariSiteIcons {
                 snapshot = loaded.0
                 images = nextImages
                 bindings = bindings.filter { _, binding in
-                    guard let window = binding.window, Windows.list.contains(where: { $0 === window }), eligible(window),
-                          let snapshot = loaded.0 else { return false }
-                    return snapshot.records.filter { $0.windowId == binding.browserWindowId }.count == 1
+                    guard let window = binding.window, Windows.list.contains(where: { $0 === window }),
+                          loaded.0?.resetIcons != true else { return false }
+                    return !(loaded.0?.clearWindowIds ?? []).contains(binding.browserWindowId)
                 }
                 establishBindings()
                 if changed {
@@ -119,6 +122,21 @@ final class SafariSiteIcons {
     }
 
     static func icon(for window: Window) -> CGImage? {
+        guard UserDefaults.standard.bool(forKey: "localSafariSiteIcons") else {
+            bindings.removeAll()
+            return nil
+        }
+        guard Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles,
+              eligible(window) else { return nil }
+        if let image = resolvedIcon(for: window) { return image }
+        if let binding = bindings[ObjectIdentifier(window)], binding.window === window {
+            diagnostic("retaining-last-ready-icon")
+            return binding.image
+        }
+        return nil
+    }
+
+    private static func resolvedIcon(for window: Window) -> CGImage? {
         guard UserDefaults.standard.bool(forKey: "localSafariSiteIcons"),
               Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles,
               eligible(window) else { return nil }
@@ -134,7 +152,11 @@ final class SafariSiteIcons {
                snapshot.records.filter({ geometryMatches($0, window) }).count == 1,
                Windows.list.filter({ eligible($0) && geometryMatches(record, $0) }).count == 1 {
                 diagnostic("bound-window-title-transition")
-                return images[record.windowId]
+                if let image = images[record.windowId] {
+                    bindings[ObjectIdentifier(window)] = Binding(window: window, browserWindowId: record.windowId, image: image)
+                    return image
+                }
+                return nil
             }
             diagnostic("title-or-bounds-unmatched")
             return nil
@@ -150,7 +172,7 @@ final class SafariSiteIcons {
             guard let png = record.png, records.allSatisfy({ $0.png == png }) else { diagnostic("ambiguous-different-images"); return nil }
         }
         if records.count == 1 {
-            bindings[ObjectIdentifier(window)] = Binding(window: window, browserWindowId: record.windowId)
+            bindings[ObjectIdentifier(window)] = Binding(window: window, browserWindowId: record.windowId, image: images[record.windowId]!)
         }
         return images[record.windowId]
     }
