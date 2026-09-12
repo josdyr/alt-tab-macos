@@ -47,8 +47,10 @@ container-relative corner migration requires separate multi-style testing.
 ## Local app identity column
 
 Titles style shows app name, icon, and window title in separate columns. The app
-name column is measured from displayed windows on each layout and capped at 140pt.
-It aligns toward the icon and truncates long names with a full-name tooltip.
+name column uses the text field cell size, including padding, after automatic font
+sizing and is capped at 140pt. It can grow during a switcher session but does not
+shrink when filtering; the next session measures afresh. Names use leading
+alignment and truncate long names with a full-name tooltip.
 Selected names follow the title selection color. In right-to-left layout the
 column is mirrored. The `localAppNameColumn` Boolean defaults to enabled when
 absent; false restores the prior layout after relaunch. No browser integration

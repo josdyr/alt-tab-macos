@@ -22,6 +22,7 @@ class TilesView {
     static var thumbnailsWidth = CGFloat(0.0)
     static var thumbnailsHeight = CGFloat(0.0)
     static var layoutCache = LayoutCache()
+    private static let appNameMeasurement = TileTitleView(font: Appearance.font)
     static var thumbnailUnderLayer = TileUnderLayer()
     static var thumbnailOverView = TileOverView()
     private static var initialized = false
@@ -41,6 +42,7 @@ class TilesView {
     static var isSearchEditing: Bool { searchMode == .editing }
 
     static func startSearchSession(_ startInSearchMode: Bool) {
+        layoutCache.appNameWidth = 0
         searchField.stringValue = ""
         Windows.updateSearchQuery("")
         searchMode = SearchModeResolver.startMode(startInSearch: startInSearchMode)
@@ -429,15 +431,13 @@ class TilesView {
     }
 
     static func updateItemsAndLayout(_ preservedScrollOrigin: CGPoint?) {
-        layoutCache.appNameWidth = min(140, Windows.list.filter { $0.shouldShowTheUser }.map {
-            (($0.application.localizedName ?? "") as NSString).size(withAttributes: [.font: Appearance.font]).width
-        }.max() ?? 0).rounded(.up)
         var widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         if Preferences.effectiveAppearanceSize(SwitcherSession.activeShortcutIndex) == .auto {
             resolveAutoSize(widthMax)
             Self.updateCachedSizes()
             widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         }
+        updateAppNameColumnWidth()
         if let (maxX, maxY, labelHeight, rowSignature) = layoutTileViews(widthMax) {
             layoutParentViews(maxX, widthMax, maxY, labelHeight)
             centerRows(TilesView.thumbnailsWidth)
@@ -457,6 +457,17 @@ class TilesView {
                 restoreScrollOrigin(preservedScrollOrigin)
             }
         }
+    }
+
+    private static func updateAppNameColumnWidth() {
+        guard Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles else { return }
+        appNameMeasurement.font = Appearance.font
+        let names = Set(Windows.list.filter { $0.shouldShowTheUser }.compactMap { $0.application.localizedName })
+        let measuredWidth = names.map { name -> CGFloat in
+            appNameMeasurement.stringValue = name
+            return appNameMeasurement.cell!.cellSize.width.rounded(.up)
+        }.max() ?? 0
+        layoutCache.appNameWidth = min(140, max(layoutCache.appNameWidth, measuredWidth))
     }
 
     static func currentScrollOrigin() -> CGPoint {

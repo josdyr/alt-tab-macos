@@ -576,7 +576,7 @@ class TileView: FlippedView {
             if App.shared.userInterfaceLayoutDirection == .rightToLeft {
                 assignIfDifferent(&appIcon.frame.origin.x, edgeInsets + hWidth - appNameColumnWidth - appIcon.frame.width)
             }
-            appNameLabel.alignment = App.shared.userInterfaceLayoutDirection == .leftToRight ? .right : .left
+            appNameLabel.alignment = App.shared.userInterfaceLayoutDirection == .leftToRight ? .left : .right
             appNameLabel.frame = NSRect(
                 x: App.shared.userInterfaceLayoutDirection == .leftToRight ? edgeInsets : frame.width - edgeInsets - TilesView.layoutCache.appNameWidth,
                 y: edgeInsets + ((hHeight - TilesView.layoutCache.labelHeight) / 2).rounded(),
