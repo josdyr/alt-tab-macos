@@ -5,6 +5,15 @@ class AppearanceTestable {
         min(max(0, limit), max(320, measured.rounded(.up)))
     }
 
+    static func stableTitlesWidth(measured: CGFloat, limit: CGFloat, previous: CGFloat?, tolerance: CGFloat) -> CGFloat {
+        let required = fittedTitlesWidth(measured: measured, limit: limit)
+        let slack = max(0, tolerance)
+        if let previous, previous <= limit, previous >= required, previous - required <= slack * 2 {
+            return previous
+        }
+        return min(max(0, limit), required + slack)
+    }
+
     static func appNameColumnWidth(measured: CGFloat, previous: CGFloat, rowWidth: CGFloat) -> CGFloat {
         min(240, max(0, rowWidth * 0.25), max(previous, measured))
     }

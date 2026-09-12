@@ -145,3 +145,13 @@ stability. App names remain capped to 25% of the fitted row and 240pt.
 
 Design reference: [Apple layout guidance](https://developer.apple.com/design/human-interface-guidelines/layout).
 The numeric bounds are local design choices, not Apple-prescribed constants.
+
+### Live resizing without spinner jitter
+
+Keep a small spare width of max(24pt, twice the title font point size). Retain the
+current session width while content still fits and unused room is at most twice
+that allowance. Grow immediately when required content exceeds the current width;
+shrink when materially less space is required. Clamp to screen limits even if the
+previous width was larger. Reset this width history each summon. Titles themselves
+continue updating immediately. This hysteresis is a local usability choice, not
+an Apple-prescribed timing or spacing rule.

@@ -43,6 +43,7 @@ class TilesView {
 
     static func startSearchSession(_ startInSearchMode: Bool) {
         layoutCache.appNameWidth = 0
+        layoutCache.fittedTitlesWidth = nil
         searchField.stringValue = ""
         Windows.updateSearchQuery("")
         searchMode = SearchModeResolver.startMode(startInSearch: startInSearchMode)
@@ -431,6 +432,7 @@ class TilesView {
     }
 
     static func updateItemsAndLayout(_ preservedScrollOrigin: CGPoint?) {
+        let previousWidth = layoutCache.fittedTitlesWidth
         layoutCache.fittedTitlesWidth = nil
         var widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         if Preferences.effectiveAppearanceSize(SwitcherSession.activeShortcutIndex) == .auto {
@@ -439,7 +441,7 @@ class TilesView {
             widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         }
         updateAppNameColumnWidth()
-        fitTitlesWidth(widthMax)
+        fitTitlesWidth(widthMax, previous: previousWidth)
         widthMax = TilesPanel.maxThumbnailsWidth().rounded()
         if let (maxX, maxY, labelHeight, rowSignature) = layoutTileViews(widthMax) {
             layoutParentViews(maxX, widthMax, maxY, labelHeight)
@@ -474,7 +476,7 @@ class TilesView {
             previous: isSearchModeOn ? layoutCache.appNameWidth : 0, rowWidth: TileView.maxThumbnailWidth())
     }
 
-    private static func fitTitlesWidth(_ limit: CGFloat) {
+    private static func fitTitlesWidth(_ limit: CGFloat, previous: CGFloat?) {
         guard Preferences.effectiveAppearanceStyle(SwitcherSession.activeShortcutIndex) == .titles else { return }
         let height = TileView.height(layoutCache.labelHeight)
         var measured = CGFloat(0)
@@ -484,8 +486,9 @@ class TilesView {
             view.updateRecycledCellWithNewContent(window, index, height)
             measured = max(measured, view.idealTitlesWidth)
         }
-        layoutCache.fittedTitlesWidth = AppearanceTestable.fittedTitlesWidth(
-            measured: measured + Appearance.interCellPadding * 2, limit: limit)
+        layoutCache.fittedTitlesWidth = AppearanceTestable.stableTitlesWidth(
+            measured: measured + Appearance.interCellPadding * 2, limit: limit,
+            previous: previous, tolerance: max(24, Appearance.font.pointSize * 2))
         layoutCache.appNameWidth = AppearanceTestable.appNameColumnWidth(measured: layoutCache.appNameWidth,
             previous: 0, rowWidth: TileView.maxThumbnailWidth())
     }

@@ -1,6 +1,22 @@
 import XCTest
 
 final class AppearanceTests: XCTestCase {
+    func testTitlesWidthAbsorbsSpinnerChangesButStillGrowsAndShrinks() {
+        var width = AppearanceTestable.stableTitlesWidth(measured: 500, limit: 1000, previous: nil, tolerance: 32)
+        XCTAssertEqual(width, 532)
+        for measured in [501.0, 499, 515, 500, 525, 498] {
+            width = AppearanceTestable.stableTitlesWidth(measured: measured, limit: 1000, previous: width, tolerance: 32)
+            XCTAssertEqual(width, 532)
+        }
+        width = AppearanceTestable.stableTitlesWidth(measured: 800, limit: 1000, previous: width, tolerance: 32)
+        XCTAssertEqual(width, 832)
+        width = AppearanceTestable.stableTitlesWidth(measured: 400, limit: 1000, previous: width, tolerance: 32)
+        XCTAssertEqual(width, 432)
+        XCTAssertEqual(AppearanceTestable.stableTitlesWidth(measured: 990, limit: 1000, previous: width, tolerance: 32), 1000)
+        XCTAssertEqual(AppearanceTestable.stableTitlesWidth(measured: 450, limit: 480, previous: 832, tolerance: 32), 480)
+        XCTAssertEqual(AppearanceTestable.stableTitlesWidth(measured: 500, limit: 1000, previous: nil, tolerance: 32), 532)
+    }
+
     func testTitlesWidthShrinksWithContentAndRespectsScreenLimit() {
         XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 900, limit: 1000), 900)
         XCTAssertEqual(AppearanceTestable.fittedTitlesWidth(measured: 410.2, limit: 1000), 411)
