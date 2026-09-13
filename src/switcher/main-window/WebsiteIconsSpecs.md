@@ -32,7 +32,7 @@ Settings > Appearance > Show website icons.
 - Artwork keeps full size only when its corners are one opaque background color wherever the rounded mask leaves them
   visible. Otherwise it is inset on a backing, so transparent logos (GitHub's circle) never blend into the selected row.
 - The backing is white and brand colors are never changed. Artwork that barely shows on white (under 1.5:1 contrast for
-  three quarters of it, e.g. white or pale-yellow marks) gets a dark backing. Both backings contrast at least 3:1 with
+  over 90% of it, e.g. white or pale-yellow marks) gets a dark backing; a white badge with a small dark logo stays white. Both backings contrast at least 3:1 with
   the selected row's accent color.
 - Output does not depend on the system appearance.
 

@@ -166,8 +166,9 @@ enum WebsiteIconRenderer {
     }
 
     /// Transparent artwork gets a white backing, like app icons, and keeps its brand colors. Only artwork that barely
-    /// shows on white (under 1.5:1 contrast for three quarters of its visible area, e.g. white or pale-yellow marks) gets
-    /// a dark backing instead. Either backing contrasts at least 3:1 with the selected row's accent color.
+    /// shows on white (under 1.5:1 contrast for over 90% of its visible area, e.g. white or pale-yellow marks) gets a dark
+    /// backing instead; a white badge with a small dark logo (apple.com) stays on white. Either backing contrasts at
+    /// least 3:1 with the selected row's accent color.
     private static func contrastingBackground(_ image: CGImage) -> CGColor {
         let bitmap = NSBitmapImageRep(cgImage: image)
         var weight: CGFloat = 0
@@ -179,7 +180,7 @@ enum WebsiteIconRenderer {
                 if 1.05 / (relativeLuminance(color) + 0.05) >= 1.5 { visibleOnWhite += color.alphaComponent }
             }
         }
-        return CGColor(gray: weight > 0 && visibleOnWhite / weight < 0.25 ? 0.12 : 1, alpha: 1)
+        return CGColor(gray: weight > 0 && visibleOnWhite / weight < 0.1 ? 0.12 : 1, alpha: 1)
     }
 
     private static func relativeLuminance(_ color: NSColor) -> CGFloat {
