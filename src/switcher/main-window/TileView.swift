@@ -317,11 +317,19 @@ class TileView: FlippedView {
     }
 
     private func updateAppIcon(_ element: Window, _ title: String) {
-        if sampledIcon !== element.icon {
-            sampledIcon = element.icon
-            iconEdgeSamples = element.icon.map(Self.sampleIconEdges) ?? []
+        updateDisplayedAppIcon(WebsiteIcons.enabled
+            ? WebsiteIcons.icon(for: element) ?? element.icon : element.icon)
+    }
+
+    func updateDisplayedAppIcon(_ image: CGImage?) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        if sampledIcon !== image {
+            sampledIcon = image
+            iconEdgeSamples = image.map(Self.sampleIconEdges) ?? []
         }
-        appIcon.updateContents(.cgImage(element.icon), TileView.iconSize())
+        appIcon.updateContents(.cgImage(image), TileView.iconSize())
         updateIconSeparation()
     }
 
