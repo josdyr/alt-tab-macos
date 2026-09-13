@@ -1,3 +1,9 @@
+## Website icons tidy-up (2026-09-13)
+
+- Rename the feature to WebsiteIcons, WebsiteIconResolver and WebsiteIconRenderer, remove the test-only laboratory mode and extension-era renderer inputs, and move checks into the unit-test target (`WebsiteIconsTests.swift`, `WebsiteIconsSpecs.md`).
+- Give transparent logos that touch their image edges (GitHub, Vercel) a white backing, and give artwork under 1.5:1 contrast on white a dark backing.
+- Fix a Swift exclusivity crash when icon callbacks re-entered the resolver.
+
 ## Titles app names after the widest title shrinks (2026-09-13)
 
 - Stop capping the app-name column to 25% of the content-fitted panel, which truncated names like "RoutineGui…" once a longer title (e.g. a terminal spinner) went away.

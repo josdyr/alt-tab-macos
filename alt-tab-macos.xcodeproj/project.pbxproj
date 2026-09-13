@@ -7,9 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D19000000000000000000005 /* IconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000006 /* IconRenderer.swift */; };
-		D19000000000000000000003 /* FixtureIconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000004 /* FixtureIconResolver.swift */; };
-		D19000000000000000000001 /* NativeBrowserIconPrototype.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000002 /* NativeBrowserIconPrototype.swift */; };
+		D19000000000000000000005 /* WebsiteIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000006 /* WebsiteIconRenderer.swift */; };
+		D1900000000000000000000B /* WebsiteIconsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1900000000000000000000C /* WebsiteIconsTests.swift */; };
+		D1900000000000000000000D /* WebsiteIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000006 /* WebsiteIconRenderer.swift */; };
+		D1900000000000000000000E /* WebsiteIconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000004 /* WebsiteIconResolver.swift */; };
+		D19000000000000000000003 /* WebsiteIconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000004 /* WebsiteIconResolver.swift */; };
+		D19000000000000000000001 /* WebsiteIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000002 /* WebsiteIcons.swift */; };
 		1C96101BC5817A7F85FA1F8D /* titles_show_running_applications_light@2x.heic in Resources */ = {isa = PBXBuildFile; fileRef = 1C961F57248D4E2377A9038E /* titles_show_running_applications_light@2x.heic */; };
 		1C96108A0CB2565233FE100B /* TableGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C961FB3DCF4906FEEF4A23D /* TableGroupView.swift */; };
 		1C9610F8AF7AD8CA53B62913 /* titles_hide_status_icons_light@2x.heic in Resources */ = {isa = PBXBuildFile; fileRef = 1C961E64CF8FB6E3FDAA3DAA /* titles_hide_status_icons_light@2x.heic */; };
@@ -451,9 +454,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		D19000000000000000000006 /* IconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconRenderer.swift; sourceTree = "<group>"; };
-		D19000000000000000000004 /* FixtureIconResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureIconResolver.swift; sourceTree = "<group>"; };
-		D19000000000000000000002 /* NativeBrowserIconPrototype.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeBrowserIconPrototype.swift; sourceTree = "<group>"; };
+		D19000000000000000000006 /* WebsiteIconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteIconRenderer.swift; sourceTree = "<group>"; };
+		D1900000000000000000000C /* WebsiteIconsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteIconsTests.swift; sourceTree = "<group>"; };
+		D19000000000000000000004 /* WebsiteIconResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteIconResolver.swift; sourceTree = "<group>"; };
+		D19000000000000000000002 /* WebsiteIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteIcons.swift; sourceTree = "<group>"; };
 		02540420CE27E6C973652426 /* menubar-0.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "menubar-0.pdf"; sourceTree = "<group>"; };
 		126D5AA615CEE89F73C22DA7 /* menubar-1.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "menubar-1.pdf"; sourceTree = "<group>"; };
 		1C961003A0D16B9AE3932B3F /* thumbnails_show_colored_circles_light@2x.heic */ = {isa = PBXFileReference; lastKnownFileType = image.heic; path = "thumbnails_show_colored_circles_light@2x.heic"; sourceTree = "<group>"; };
@@ -1645,9 +1649,10 @@
 				5E6010B00000000000000101 /* TileGridLayoutTests.swift */,
 				D04BAFC0A1B2C3D4E5F60001 /* TileOverView.swift */,
 				D04BAFC2A1B2C3D4E5F60003 /* TileUnderLayer.swift */,
-				D19000000000000000000006 /* IconRenderer.swift */,
-				D19000000000000000000004 /* FixtureIconResolver.swift */,
-				D19000000000000000000002 /* NativeBrowserIconPrototype.swift */,
+				D19000000000000000000006 /* WebsiteIconRenderer.swift */,
+				D1900000000000000000000C /* WebsiteIconsTests.swift */,
+				D19000000000000000000004 /* WebsiteIconResolver.swift */,
+				D19000000000000000000002 /* WebsiteIcons.swift */,
 				5EA8E110000000000000DA01 /* DragAndDropResolver.swift */,
 				5EA8E110000000000000DA11 /* DragAndDropResolverTests.swift */,
 			);
@@ -2109,6 +2114,9 @@
 				5A1100000000000000040005 /* AxObserverHealthTests.swift in Sources */,
 				5F882F382EC3C63400110A9F /* CustomRecorderControlTestable.swift in Sources */,
 				BF0C81FA62D810342F59291A /* AppearanceTests.swift in Sources */,
+				D1900000000000000000000B /* WebsiteIconsTests.swift in Sources */,
+				D1900000000000000000000D /* WebsiteIconRenderer.swift in Sources */,
+				D1900000000000000000000E /* WebsiteIconResolver.swift in Sources */,
 				5EA8E110000000000000F003 /* AxQueryRouting.swift in Sources */,
 				5E9E570000000000000F1002 /* GestureTriggerKernel.swift in Sources */,
 				5E9E570000000000000F1102 /* GestureTriggerKernelTests.swift in Sources */,
@@ -2311,9 +2319,9 @@
 				5EA8E110000000000000DA02 /* DragAndDropResolver.swift in Sources */,
 				D04BAFC1A1B2C3D4E5F60002 /* TileOverView.swift in Sources */,
 				D04BAFC3A1B2C3D4E5F60004 /* TileUnderLayer.swift in Sources */,
-				D19000000000000000000005 /* IconRenderer.swift in Sources */,
-				D19000000000000000000003 /* FixtureIconResolver.swift in Sources */,
-				D19000000000000000000001 /* NativeBrowserIconPrototype.swift in Sources */,
+				D19000000000000000000005 /* WebsiteIconRenderer.swift in Sources */,
+				D19000000000000000000003 /* WebsiteIconResolver.swift in Sources */,
+				D19000000000000000000001 /* WebsiteIcons.swift in Sources */,
 				5F21C9E42C6E94700091F72F /* CustomizeStyleSheet.swift in Sources */,
 				D04BA1621718FF26F8D5E75D /* CustomRecorderControl.swift in Sources */,
 				5F1CE0010000000000000001 /* Clock.swift in Sources */,

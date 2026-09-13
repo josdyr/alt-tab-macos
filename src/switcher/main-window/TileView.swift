@@ -317,8 +317,8 @@ class TileView: FlippedView {
     }
 
     private func updateAppIcon(_ element: Window, _ title: String) {
-        updateDisplayedAppIcon(NativeBrowserIconPrototype.enabled
-            ? NativeBrowserIconPrototype.icon(for: element) ?? element.icon
+        updateDisplayedAppIcon(WebsiteIcons.enabled
+            ? WebsiteIcons.icon(for: element) ?? element.icon
             : element.icon)
     }
 
