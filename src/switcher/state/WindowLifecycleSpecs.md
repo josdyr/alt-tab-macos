@@ -49,3 +49,12 @@ leaves it hidden behind other windows. Focusing it:
 
 Local probe (macOS 27.0): activate plus raise moved the existing Device Hub window to the front in four of four
 trials, returning in 25 to 42ms; reopening alone took 86ms.
+## Closing and quitting from the switcher
+
+- A window closed from the switcher skips the 150ms settle delay before its AX-end query. The AX and WindowServer
+  queries still decide, so a window that survives its close stays listed. Measured on macOS 27 with Chrome: the row is
+  gone about 50ms after the key, down from about 320ms.
+- Window removals refresh the open switcher immediately instead of through the 200ms UI throttle, which is always busy
+  when any title has a spinner.
+- Quitting an app from the switcher hides its rows immediately instead of waiting for it to finish terminating. If it's
+  still running 5 seconds later (a save dialog, a cancelled quit), its rows return. A second quit still force-quits.
