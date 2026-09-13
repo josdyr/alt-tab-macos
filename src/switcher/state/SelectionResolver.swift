@@ -259,12 +259,10 @@ enum SelectionResolver {
         return .resetWithoutSelection
     }
 
-    /// Mirrors `adaptSelectionToVisibleIndexes`. `visibleIndexes` is non-empty by caller's guard,
-    /// and `decide()` only invokes `adapt` after the `selectedTarget == nil` early-return — so
-    /// the only branching here is "is `selectedIndex` still in `visibleIndexes`?"
+    /// Keep the vacated position, preferring the next visible row. At the end, use the last survivor.
     private static func adapt(_ i: SelectionInputs, visibleIndexes: [Int], lastVisible: Int) -> SelectionDecision {
         if !visibleIndexes.contains(i.selectedIndex) {
-            let closest = visibleIndexes.last(where: { $0 < i.selectedIndex }) ?? lastVisible
+            let closest = visibleIndexes.first(where: { $0 > i.selectedIndex }) ?? lastVisible
             return .selectAt(closest)
         }
         // selectedIndex is in visibleIndexes (so it's already between firstVisible and lastVisible),

@@ -32,7 +32,7 @@ the #5665 fix (before it, a background app finishing launch could yank the highl
 3. **Search best-match** (`bestMatchOnSearchChange`) → jump to the first visible (best-scored) window.
 4. **No target yet** (`selectedTarget == nil`, first refresh) → "from scratch" initial pick.
 5. **Target still present** → follow it to its new index (`selectAt`).
-6. **Target gone** → adapt to the closest visible window.
+6. **Target gone** → keep the vacated row position, or choose the next visible window; use the last survivor only when no next row remains.
 
 `selectedTarget` means two different things, split by `userPickedSelection`: while the user hasn't moved the
 selection it is merely where the DEFAULT landed, so step 4 re-derives it on every refresh; once the user
@@ -123,7 +123,7 @@ question from the frontmost app's windows (#5960) · plus direct helper-kernel c
 ### C. Target removed / no longer visible
 - **testTargetRemovedAdaptToClosestBelow** — target closed; backfill the target to the window now at that index.
 - **testTargetRemovedSelectedIndexOutOfBounds** — list shrank below `selectedIndex` → closest visible below.
-- **testTargetBecameInvisible** — target filtered out (search/space) → closest visible below.
+- **testTargetBecameInvisible** — target filtered out (search/space) → next visible row.
 - **testTargetRemovedAndListEmptied** — nothing left → `clearTargetAndHover`.
 - **testTargetRemovedOnlyOneLeft** — one window remains → select it and backfill the target.
 
@@ -225,3 +225,5 @@ that identity even before any Tab press. Cover up/down in Titles and multi-colum
 layouts, wrapping, and non-wrapping edge moves. A blocked move must not commit a
 new selection. Default selection before any user navigation retains its existing
 settling behavior.
+
+Closing transitions: a first row hidden before removal selects its next visible neighbor, and follows that neighbor by identity after removal. Hidden successors are skipped; closing the last row selects the last survivor. This policy is independent of browser or layout type.

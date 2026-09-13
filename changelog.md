@@ -1,3 +1,7 @@
+## Local closing correction (2026-09-13)
+
+- Select the next visible row when a closing window becomes hidden, preventing a first-row jump to the bottom.
+
 ## Local navigation correction (2026-09-13)
 
 - Preserve stationary mouse hover during title refreshes while still clearing it on keyboard navigation and pointer exit.
