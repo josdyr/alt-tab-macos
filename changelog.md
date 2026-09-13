@@ -1,3 +1,7 @@
+## Native browser icon laboratory (2026-09-13)
+
+- Add an opt-in, extension-free provider shared by Safari and Chrome, restricted to controlled loopback fixtures. Normal runs retain the existing icon provider. See `docs/native-browser-icon-prototype.md` for evidence and limits.
+
 ## Local action selection correction (2026-09-13)
 
 - Preserve the next window by identity before close, hide, minimize, or quit actions, preventing focus-event reordering from skipping rows.

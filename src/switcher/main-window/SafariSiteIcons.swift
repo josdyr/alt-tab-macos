@@ -76,6 +76,7 @@ final class SafariSiteIcons {
     }
 
     static func refresh(force: Bool = false) {
+        guard !NativeBrowserIconPrototype.enabled else { return }
         guard UserDefaults.standard.bool(forKey: "localSafariSiteIcons") else { return }
         startWatching()
         if loading { pendingRefresh = pendingRefresh || force; return }
