@@ -1,3 +1,8 @@
+## Stable website icons across page URLs (2026-09-13)
+
+- Resolve icons through reviewed public homepages so browser parameters, searches and article navigation retain the site's icon.
+- Strip document paths, queries and fragments before icon discovery; retain strict network allowlists and reject unreviewed origins.
+
 ## Native website artwork consistency (2026-09-13)
 
 - Reuse the companion renderer for rounded, white-first website tiles, sharing cached finished artwork off the main thread.

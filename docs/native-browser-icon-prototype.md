@@ -1,3 +1,15 @@
+# Stable origin lookup during navigation, 2026-09-13
+
+Safari's existing Google window exposed `https://www.google.com/?client=safari`. The exact-homepage gate rejected it, even though a separately opened clean Google homepage worked. The problem was the experiment's URL policy, not the icon decoder or Safari name.
+
+`pageForDocument` now maps HTTPS document URLs on the eight reviewed origins to the clean public homepage. It removes the path, query and fragment before network lookup and cache selection. Initial lookup and stale-result validation use the same mapping, so navigation within one origin reuses its ready artwork. The actual fetch allowlist remains exact: article URLs, query URLs, arbitrary origins, credentials and unreviewed ports cannot be fetched. Loopback fixtures retain their page-specific behavior for deterministic tests. No hostname or browser-name exceptions were added to the algorithm.
+
+This is explicitly a homepage-icon strategy. It can differ from a page-specific favicon, and it does not solve private-window identification, unknown-origin navigation, temporary missing AX URLs or unchanged-origin icon freshness. Those remain qualification work before general release. Review [URLComponents](https://developer.apple.com/documentation/foundation/urlcomponents) for structured URL handling and the [HTML icon model](https://html.spec.whatwg.org/multipage/links.html#rel-icon) for document-specific favicon semantics.
+
+Validation: 24 query/article variants across eight origins mapped to the correct homepage while remaining disallowed for direct fetching. Unreviewed/lookalike origins, embedded credentials, HTTP and an unreviewed port were rejected. All eight homepage icons resolved. The signed app built and passed strict verification; the existing Google Safari row visibly displayed its G icon in the actual switcher after the rebuild. The prototype was relaunched without its benchmark for normal testing; no installed bundle or persistent preference was changed.
+
+This section supersedes the earlier exact-document test scope. Pages on the eight reviewed origins can now display homepage icons; unreviewed origins still use the browser app icon.
+
 # Native artwork parity and expanded homepage tests, 2026-09-13
 
 The prototype now normalizes downloaded artwork using an unchanged vendored copy of the companion's `IconRenderer.swift` (dotfiles revision `5a8112208984916ab90c3cdaa49ad4ccabf3475e`). Rendering and PNG decoding run on the utility cache queue; callers share the finished 64px image. Existing extension snapshots are already rendered and are not processed again. The providers reuse the same implementation, but do not yet depend on a single shared package. `ai/check-icon-renderer-parity.py /path/to/macos/alt-tab-site-icons` checks both renderer and test parity so this experimental copy cannot silently drift during comparison.

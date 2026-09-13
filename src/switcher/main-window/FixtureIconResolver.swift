@@ -18,6 +18,17 @@ final class FixtureIconResolver: NSObject, URLSessionTaskDelegate {
         (url.scheme == "http" && url.host == "127.0.0.1" && url.port == 18769 && url.user == nil && url.password == nil)
             || listed(url, "ALTTAB_NATIVE_ICON_TEST_PAGES")
     }
+    /// Use a reviewed public homepage without forwarding document paths or query data.
+    static func pageForDocument(_ url: URL) -> URL? {
+        guard url.user == nil, url.password == nil else { return nil }
+        if url.scheme == "http", url.host == "127.0.0.1", url.port == 18769 { return url }
+        guard url.scheme == "https", var parts = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
+        parts.path = "/"
+        parts.query = nil
+        parts.fragment = nil
+        guard let page = parts.url, listed(page, "ALTTAB_NATIVE_ICON_TEST_PAGES") else { return nil }
+        return page
+    }
     static func allowed(_ url: URL) -> Bool {
         allowedPage(url) || listed(url, "ALTTAB_NATIVE_ICON_TEST_ASSETS")
     }

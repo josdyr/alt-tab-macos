@@ -19,7 +19,7 @@ final class NativeBrowserIconPrototype {
             pending.insert(key)
             let old = cache[key]
             queue.async {
-                let url = documentURL(element).flatMap { FixtureIconResolver.allowedPage($0) ? $0 : nil }
+                let url = documentURL(element).flatMap(FixtureIconResolver.pageForDocument)
                 guard let url else {
                     DispatchQueue.main.async { finish(window, key, nil, nil) }
                     return
@@ -30,7 +30,7 @@ final class NativeBrowserIconPrototype {
                 }
                 FixtureIconResolver.resolveArtwork(url) { artwork in
                     queue.async {
-                        guard documentURL(element) == url else {
+                        guard documentURL(element).flatMap(FixtureIconResolver.pageForDocument) == url else {
                             Logger.info { "native fixture discarded obsolete result" }
                             DispatchQueue.main.async {
                                 pending.remove(key)
