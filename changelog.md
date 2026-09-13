@@ -1,3 +1,7 @@
+## Native icon upstream draft (2026-09-13)
+
+- Publish the isolated [native browser icon proposal](https://github.com/lwouis/alt-tab-macos/pull/6030), document its release gates and final checks, and share the self-contained test runner and launcher disclosure.
+
 ## Native icon release preparation (2026-09-13)
 
 - Bound native icon requests and window probes, recover after overload, and expire unchanged-window results on later updates.

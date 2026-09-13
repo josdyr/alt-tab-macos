@@ -1,3 +1,11 @@
+## Upstream draft published, 2026-09-13
+
+[feat: prototype native browser website icons](https://github.com/lwouis/alt-tab-macos/pull/6030) is published as a separate architecture-review draft. It contains the native experiment without unrelated local patches. The clean review build and strict signature check passed; all 1,266 project tests, 44 renderer checks, fixture stress/admission checks, and eight live-site checks passed. CI and the supported-OS matrix remain unverified.
+
+The recommended release direction is a default-off website-icon setting with clear disclosure of independent public-homepage requests, including private windows. This supersedes the earlier pending user decision; maintainers still need to assess the proposal. No generic private-state detection is claimed. The test launcher prints the disclosure; the product preference is not implemented. Reviewed URL limits remain. Navigation continuity, globe fallback, lifecycle/cancellation and broader performance/browser validation remain release gates. Neither extensions nor an unrestricted native release were published. The running development app and installed app were not replaced during this publication step.
+
+`python3 ai/test-native-icons.py` runs local checks and owns its temporary fixture server; `--real-sites` adds the reviewed public requests.
+
 # Release preparation checkpoint, 2026-09-13
 
 A clean review branch, `prototype/native-browser-icons-review`, is based directly on upstream 11.6.1 (`850a7235`). It contains only native icon/provider/renderer code, the TileView hook and test tooling. It excludes the unrelated local layout, selection, hover, preview, Device Hub, Safari extension and entitlement patches. Both the local-patch experiment and the clean upstream-based project build with the documented local SDK overrides and pass strict signing. Neither is a release candidate yet.
