@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D19000000000000000000005 /* IconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000006 /* IconRenderer.swift */; };
 		D19000000000000000000003 /* FixtureIconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000004 /* FixtureIconResolver.swift */; };
 		D19000000000000000000001 /* NativeBrowserIconPrototype.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19000000000000000000002 /* NativeBrowserIconPrototype.swift */; };
 		AAA0BFC3A1B2C3D4E5F60004 /* SafariSiteIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA0BFC2A1B2C3D4E5F60003 /* SafariSiteIcons.swift */; };
@@ -451,6 +452,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D19000000000000000000006 /* IconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconRenderer.swift; sourceTree = "<group>"; };
 		D19000000000000000000004 /* FixtureIconResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureIconResolver.swift; sourceTree = "<group>"; };
 		D19000000000000000000002 /* NativeBrowserIconPrototype.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeBrowserIconPrototype.swift; sourceTree = "<group>"; };
 		AAA0BFC2A1B2C3D4E5F60003 /* SafariSiteIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariSiteIcons.swift; sourceTree = "<group>"; };
@@ -1646,6 +1648,7 @@
 				D04BAFC0A1B2C3D4E5F60001 /* TileOverView.swift */,
 				D04BAFC2A1B2C3D4E5F60003 /* TileUnderLayer.swift */,
 				AAA0BFC2A1B2C3D4E5F60003 /* SafariSiteIcons.swift */,
+				D19000000000000000000006 /* IconRenderer.swift */,
 				D19000000000000000000004 /* FixtureIconResolver.swift */,
 				D19000000000000000000002 /* NativeBrowserIconPrototype.swift */,
 				5EA8E110000000000000DA01 /* DragAndDropResolver.swift */,
@@ -2312,6 +2315,7 @@
 				D04BAFC1A1B2C3D4E5F60002 /* TileOverView.swift in Sources */,
 				D04BAFC3A1B2C3D4E5F60004 /* TileUnderLayer.swift in Sources */,
 				AAA0BFC3A1B2C3D4E5F60004 /* SafariSiteIcons.swift in Sources */,
+				D19000000000000000000005 /* IconRenderer.swift in Sources */,
 				D19000000000000000000003 /* FixtureIconResolver.swift in Sources */,
 				D19000000000000000000001 /* NativeBrowserIconPrototype.swift in Sources */,
 				5F21C9E42C6E94700091F72F /* CustomizeStyleSheet.swift in Sources */,

@@ -94,8 +94,13 @@ final class FixtureIconResolver: NSObject, URLSessionTaskDelegate {
             if pendingImages[url] != nil { pendingImages[url]!.append(completion); return }
             pendingImages[url] = [completion]
             fetch(url) { data, _ in
-                let artwork = data.flatMap { data in image(data).map { Artwork(data: data, image: $0) } }
                 queue.async {
+                    let artwork = data.flatMap { data -> Artwork? in
+                        guard image(data) != nil,
+                              let rendered = IconRenderer.render([["data": data.base64EncodedString()]]),
+                              let png = Data(base64Encoded: rendered.png), let bitmap = image(png) else { return nil }
+                        return Artwork(data: png, image: bitmap)
+                    }
                     images = images.filter { $0.value.expires > Date() }
                     if images.count >= 32, let oldest = images.min(by: { $0.value.expires < $1.value.expires }) { images.removeValue(forKey: oldest.key) }
                     images[url] = Entry(artwork: artwork, expires: Date().addingTimeInterval(artwork == nil ? 5 : 30))

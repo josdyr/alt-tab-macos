@@ -19,7 +19,7 @@ import Foundation
                 else {
                     precondition(data != nil)
                     let image = FixtureIconResolver.image(data!)!
-                    precondition(image.width == 32 && image.height == 32)
+                    precondition(image.width == 64 && image.height == 64)
                     images.append(data!)
                 }
                 print("\(name): bytes=\(data?.count ?? 0), milliseconds=\(Int((ProcessInfo.processInfo.systemUptime - start) * 1000))")

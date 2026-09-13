@@ -1,3 +1,8 @@
+## Native website artwork consistency (2026-09-13)
+
+- Reuse the companion renderer for rounded, white-first website tiles, sharing cached finished artwork off the main thread.
+- Add Google and both DuckDuckGo public homepages to the controlled native experiment, with renderer parity checks and regressions. General browsing remains disabled.
+
 ## Native browser icon stress and real-site experiment (2026-09-13)
 
 - Share repeated page/icon work and decoded artwork, cap streamed responses and redirects, and recover from obsolete navigation results.

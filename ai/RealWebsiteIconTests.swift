@@ -10,6 +10,7 @@ import Foundation
             let start = ProcessInfo.processInfo.systemUptime
             FixtureIconResolver.resolveArtwork(url) { artwork in
                 precondition(artwork != nil, "No artwork returned for reviewed homepage: \(url.host!)")
+                precondition(artwork?.image.width == 64 && artwork?.image.height == 64, "Expected normalized tile")
                 print("\(url.host!): bitmap=\(artwork?.image.width ?? 0)x\(artwork?.image.height ?? 0) bytes=\(artwork?.data.count ?? 0) milliseconds=\(Int((ProcessInfo.processInfo.systemUptime - start) * 1000))")
                 done.signal()
             }

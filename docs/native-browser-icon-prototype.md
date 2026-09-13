@@ -1,3 +1,22 @@
+# Native artwork parity and expanded homepage tests, 2026-09-13
+
+The prototype now normalizes downloaded artwork using an unchanged vendored copy of the companion's `IconRenderer.swift` (dotfiles revision `5a8112208984916ab90c3cdaa49ad4ccabf3475e`). Rendering and PNG decoding run on the utility cache queue; callers share the finished 64px image. Existing extension snapshots are already rendered and are not processed again. The providers reuse the same implementation, but do not yet depend on a single shared package. `ai/check-icon-renderer-parity.py /path/to/macos/alt-tab-site-icons` checks both renderer and test parity so this experimental copy cannot silently drift during comparison.
+
+The treatment preserves supplied colors, contains uncertain logo edges, rounds background tiles, and defaults transparent artwork to white backing. Predominantly near-white artwork can receive dark backing for legibility. Opaque source backgrounds remain part of the supplied artwork. This is the existing product treatment, not an Apple requirement to crop favicons or recolor brands. The [HTML icon standard](https://html.spec.whatwg.org/multipage/links.html#rel-icon) supports icon selection using type, media and size; complete selection parity with a browser remains future work.
+
+The reviewed test list now includes Google, DuckDuckGo and its `start.duckduckgo.com` homepage, in addition to NRK, VG, Tek, GitHub and YouTube. Both search providers resolve through the generic favicon discovery/fallback path. No renderer checks hostnames. Exact homepage URLs only are enabled; search queries, articles and other URLs still fall back to the app icon. The current prototype does not yet reproduce the extension's globe fallback or full navigation continuity.
+
+Validation:
+
+- All 44 companion artwork regression checks passed unchanged in the native checkout, including white marks, saturated logos, corner protection and quantized transparent edges.
+- All eight public homepages returned 64x64 normalized images. A sequential network sample took 212–762ms per page, including discovery, download and rendering. This is not a controlled latency comparison.
+- Stress tests passed shared image identity, in-flight coalescing, negative caching, bounds and redirects. The normalized run took 0.99s wall time, 0.11s combined CPU, 26,427,392 bytes maximum RSS; 1,000 warm callers had p95 0.024ms. These are isolated resolver measurements, not whole-app overhead or battery claims.
+- The signed development app built and passed deep/strict signature verification. Google in Safari and DuckDuckGo in Chrome were visibly verified in the actual switcher. The public-homepage prototype was relaunched without the automatic benchmark for user testing. The installed `/Applications/AltTab.app` remains unchanged.
+
+Before broad browsing or upstream release: private-window policy, global request/cancellation budgets, refresh of unchanged URLs, lifecycle/selection/hover regressions, globe fallback and continuity, appearance/format coverage, and matched whole-app CPU/memory/wakeup/input-latency measurements still need qualification. The tests establish feasibility, not extension-equivalent fidelity.
+
+The earlier measurement records follow for provenance; the new renderer and eight-homepage scope supersede their raw artwork and five-homepage state.
+
 # Native icon stress and real-site follow-up, 2026-09-13
 
 The updated prototype was visually verified in the **actual AltTab switcher** with VG in Safari, NRK in Safari and Chrome, Tek in Safari, GitHub in Safari and YouTube in Chrome. The user also confirmed seeing the controlled red/blue demonstration. This was not the standalone Safari Icon Preview.
@@ -43,9 +62,9 @@ For a fresh run, build as documented below and use:
 
 ```sh
 python3 ai/native-icon-server.py
-swiftc src/switcher/main-window/FixtureIconResolver.swift ai/FixtureIconStressTests.swift -o /tmp/alttab-native-stress
+swiftc src/switcher/main-window/IconRenderer.swift src/switcher/main-window/FixtureIconResolver.swift ai/FixtureIconStressTests.swift -o /tmp/alttab-native-stress
 /usr/bin/time -l /tmp/alttab-native-stress
-swiftc src/switcher/main-window/FixtureIconResolver.swift ai/RealWebsiteIconTests.swift -o /tmp/alttab-real-icons
+swiftc src/switcher/main-window/IconRenderer.swift src/switcher/main-window/FixtureIconResolver.swift ai/RealWebsiteIconTests.swift -o /tmp/alttab-real-icons
 python3 ai/run-native-icon-demo.py /tmp/alttab-real-icons
 # Quit the other AltTab instance before launching this separately built bundle.
 python3 ai/run-native-icon-demo.py /path/to/AltTab.app --logs=debug
@@ -93,7 +112,7 @@ xcodebuild -project alt-tab-macos.xcodeproj -scheme Debug -configuration Debug \
   CURRENT_PROJECT_VERSION=11.6.1 MACOSX_DEPLOYMENT_TARGET=12.0 \
   CODE_SIGN_IDENTITY='Apple Development' DEVELOPMENT_TEAM=79YY3FK495 \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO
-swiftc src/switcher/main-window/FixtureIconResolver.swift ai/FixtureIconResolverTests.swift -o /tmp/alttab-native-resolver-tests
+swiftc src/switcher/main-window/IconRenderer.swift src/switcher/main-window/FixtureIconResolver.swift ai/FixtureIconResolverTests.swift -o /tmp/alttab-native-resolver-tests
 /tmp/alttab-native-resolver-tests
 ```
 
