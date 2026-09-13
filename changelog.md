@@ -1,3 +1,9 @@
+## Native icon release preparation (2026-09-13)
+
+- Bound native icon requests and window probes, recover after overload, and expire unchanged-window results on later updates.
+- Prevent background AX inspection of AltTab's own UI after a whole-process test exposed an AppKit layout warning.
+- Add reproducible process comparisons and isolate native icon work onto a clean upstream-based review branch. Keep release/privacy gates explicit.
+
 ## Stable website icons across page URLs (2026-09-13)
 
 - Resolve icons through reviewed public homepages so browser parameters, searches and article navigation retain the site's icon.

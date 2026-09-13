@@ -12,6 +12,7 @@ enum IconRenderer {
 
     /// A stable neutral tile for completed web pages with no usable artwork.
     static func websitePlaceholder() -> String? {
+        guard #available(macOS 12.0, *) else { return nil }
         guard let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 64,
             bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
             colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),

@@ -7,15 +7,18 @@ final class NativeBrowserIconPrototype {
         weak var window: Window?
         let url: URL
         let image: CGImage?
+        let expires: Date
     }
     private static let queue = DispatchQueue(label: "local.native-browser-icon-prototype", qos: .utility)
     private static var cache: [ObjectIdentifier: Cached] = [:]
     private static var pending = Set<ObjectIdentifier>()
     static var enabled: Bool { ProcessInfo.processInfo.environment["ALTTAB_NATIVE_ICON_PROTOTYPE"] == "1" }
     static func icon(for window: Window, retryBudget: Int = 2) -> CGImage? {
-        guard enabled, let element = window.axUiElement else { return nil }
+        // In-process AX calls can enter AppKit directly; only inspect external processes here.
+        guard enabled, window.application.pid != ProcessInfo.processInfo.processIdentifier,
+              let element = window.axUiElement else { return nil }
         let key = ObjectIdentifier(window)
-        if !pending.contains(key) {
+        if !pending.contains(key), pending.count < 32 {
             pending.insert(key)
             let old = cache[key]
             queue.async {
@@ -24,7 +27,7 @@ final class NativeBrowserIconPrototype {
                     DispatchQueue.main.async { finish(window, key, nil, nil) }
                     return
                 }
-                if old?.url == url {
+                if old?.url == url, let expires = old?.expires, expires > Date() {
                     DispatchQueue.main.async { pending.remove(key) }
                     return
                 }
@@ -77,7 +80,7 @@ final class NativeBrowserIconPrototype {
         pending.remove(key)
         cache = cache.filter { $0.value.window != nil }
         guard Windows.list.contains(where: { $0 === window }) else { cache.removeValue(forKey: key); return }
-        cache[key] = url.map { Cached(window: window, url: $0, image: image) }
+        cache[key] = url.map { Cached(window: window, url: $0, image: image, expires: Date().addingTimeInterval(image == nil ? 5 : 30)) }
         if let url { Logger.info { "native fixture resolved pid=\(window.application.pid) file=\(url.lastPathComponent) width=\(image?.width ?? 0)" } }
         guard SwitcherSession.isActive else { return }
         for view in TilesView.recycledViews where view.window_ === window {

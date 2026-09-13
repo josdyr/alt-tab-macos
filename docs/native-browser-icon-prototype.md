@@ -1,3 +1,32 @@
+# Release preparation checkpoint, 2026-09-13
+
+A clean review branch, `prototype/native-browser-icons-review`, is based directly on upstream 11.6.1 (`850a7235`). It contains only native icon/provider/renderer code, the TileView hook and test tooling. It excludes the unrelated local layout, selection, hover, preview, Device Hub, Safari extension and entitlement patches. Both the local-patch experiment and the clean upstream-based project build with the documented local SDK overrides and pass strict signing. Neither is a release candidate yet.
+
+## Hardening completed
+
+- Bound pending window probes and distinct page/asset resolutions to 32 each, with 256 coalesced waiters per key. Bound URLSession work to eight active transfers globally and 32 queued transfers. Overload completes excess callers without artwork and does not poison later requests.
+- The new admission test completed 1,000 distinct slow-page requests, admitted 32, and verified subsequent recovery. The existing stress suite still passed.
+- Window-level results expire on later UI updates (30s positive, 5s negative), matching resolver freshness instead of indefinitely reusing the same URL. No polling timer was added. Late-icon appearance after expiry still needs live lifecycle coverage.
+- Exclude AltTab's own process before background AX inspection. An initial full-app comparison caught an AppKit autolayout warning from inspecting AltTab's settings window in-process on the worker queue. The corrected comparison produced zero such warnings, with native icon resolution/application logged.
+- Gate the placeholder's macOS 12 symbol API in the shared renderer copies. All 44 renderer checks and source/test parity passed. The local macOS 27 SDK cannot validate upstream's full 10.14.4 deployment matrix; local build success with overrides does not satisfy that gate.
+
+## Equal-duration process sample
+
+`ai/measure-native-icon-process.py` runs the same development binary with native mode off/on, five 5-second switcher openings each, and the old companion receiver disabled through a launch-only defaults argument. It samples process CPU time and RSS every 250ms, not browser CPU, wakeups, battery or key-to-frame latency.
+
+| Native mode | Elapsed | Last sampled CPU time | Peak sampled RSS |
+| --- | --- | --- | --- |
+| Off | 34.37s | 4.46s | 232,080 KiB |
+| On | 34.57s | 3.91s | 228,816 KiB |
+
+One pair on the current desktop is noisy and does not establish a performance improvement. It shows no obvious increase for this workload and helped find a real threading defect. Sampling can miss final CPU work and memory spikes. Repeated supported-OS runs, larger window counts, browser-process overhead, input latency and wakeups remain unqualified.
+
+## Privacy and release decision
+
+The user wants private-window icon support where feasible, with the browser app icon as fallback. Browser-owned local artwork can satisfy that without extra website requests when exposed. Chrome's scripting dictionary exposes normal/incognito mode; Safari's corresponding native discovery path has no established reliable private-state signal. Safari's `SFSafariPageProperties.usesPrivateBrowsing` and browser-extension tab metadata are explicit browser-provided alternatives, but require integration. We must not pretend an unknown window is normal based on its title.
+
+A release-method choice remains pending: use browser integrations for reliable context and keep independent native fetching experimental, or design an explicitly disclosed opt-in native mode that can request clean public homepages from both normal and private windows. The current test allowlist remains restricted, and there is no unrestricted release or new upstream icon PR. General navigation, globe fallback, cancellation, supported OS/format/appearance coverage and distribution remain gates after that choice.
+
 # Stable origin lookup during navigation, 2026-09-13
 
 Safari's existing Google window exposed `https://www.google.com/?client=safari`. The exact-homepage gate rejected it, even though a separately opened clean Google homepage worked. The problem was the experiment's URL policy, not the icon decoder or Safari name.

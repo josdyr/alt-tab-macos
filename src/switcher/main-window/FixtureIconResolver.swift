@@ -75,7 +75,12 @@ final class FixtureIconResolver: NSObject, URLSessionTaskDelegate {
         queue.async {
             guard allowedPage(page) else { completion(nil); return }
             if let entry = cache[page], entry.expires > Date() { completion(entry.artwork); return }
-            if pending[page] != nil { pending[page]!.append(completion); return }
+            if pending[page] != nil {
+                guard pending[page]!.count < 256 else { completion(nil); return }
+                pending[page]!.append(completion)
+                return
+            }
+            guard pending.count < 32 else { completion(nil); return }
             pending[page] = [completion]
             fetch(page, headOnly: true) { data, finalURL in
                 guard let data else { complete(page, nil); return }
@@ -102,7 +107,12 @@ final class FixtureIconResolver: NSObject, URLSessionTaskDelegate {
     private static func sharedImage(_ url: URL, _ completion: @escaping (Artwork?) -> Void) {
         queue.async {
             if let entry = images[url], entry.expires > Date() { completion(entry.artwork); return }
-            if pendingImages[url] != nil { pendingImages[url]!.append(completion); return }
+            if pendingImages[url] != nil {
+                guard pendingImages[url]!.count < 256 else { completion(nil); return }
+                pendingImages[url]!.append(completion)
+                return
+            }
+            guard pendingImages.count < 32 else { completion(nil); return }
             pendingImages[url] = [completion]
             fetch(url) { data, _ in
                 queue.async {
@@ -138,6 +148,12 @@ private final class FixtureTransfer: NSObject, URLSessionDataDelegate {
     }
     private let lock = NSLock()
     private var transfers: [Int: Transfer] = [:]
+    private struct Waiting {
+        let url: URL
+        let headOnly: Bool
+        let completion: (Data?, URL) -> Void
+    }
+    private var waiting: [Waiting] = []
     private let limit = 1_048_576
     private lazy var session: URLSession = {
         let config = URLSessionConfiguration.ephemeral
@@ -156,6 +172,12 @@ private final class FixtureTransfer: NSObject, URLSessionDataDelegate {
     func fetch(_ url: URL, headOnly: Bool, _ completion: @escaping (Data?, URL) -> Void) {
         guard FixtureIconResolver.allowed(url) else { completion(nil, url); return }
         lock.lock()
+        if transfers.count >= 8 {
+            guard waiting.count < 32 else { lock.unlock(); completion(nil, url); return }
+            waiting.append(Waiting(url: url, headOnly: headOnly, completion: completion))
+            lock.unlock()
+            return
+        }
         let task = session.dataTask(with: url)
         transfers[task.taskIdentifier] = Transfer(url: url, headOnly: headOnly, completion: completion)
         lock.unlock()
@@ -193,7 +215,9 @@ private final class FixtureTransfer: NSObject, URLSessionDataDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         lock.lock()
         let transfer = transfers.removeValue(forKey: task.taskIdentifier)
+        let next = waiting.isEmpty ? nil : waiting.removeFirst()
         lock.unlock()
+        if let next { fetch(next.url, headOnly: next.headOnly, next.completion) }
         guard let transfer else { return }
         transfer.completion((error == nil || transfer.completedHead) && transfer.valid ? transfer.data : nil, transfer.url)
     }
