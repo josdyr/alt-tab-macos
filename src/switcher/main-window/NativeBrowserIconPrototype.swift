@@ -1,7 +1,7 @@
 import Cocoa
 import ImageIO
 
-/// Opt-in laboratory provider. Only the local fixture origin is eligible until privacy and network policy are validated.
+/// Opt-in laboratory provider, restricted to fixtures and explicitly reviewed public test pages.
 final class NativeBrowserIconPrototype {
     private struct Cached {
         weak var window: Window?
@@ -12,14 +12,14 @@ final class NativeBrowserIconPrototype {
     private static var cache: [ObjectIdentifier: Cached] = [:]
     private static var pending = Set<ObjectIdentifier>()
     static var enabled: Bool { ProcessInfo.processInfo.environment["ALTTAB_NATIVE_ICON_PROTOTYPE"] == "1" }
-    static func icon(for window: Window) -> CGImage? {
+    static func icon(for window: Window, retryBudget: Int = 2) -> CGImage? {
         guard enabled, let element = window.axUiElement else { return nil }
         let key = ObjectIdentifier(window)
         if !pending.contains(key) {
             pending.insert(key)
             let old = cache[key]
             queue.async {
-                let url = documentURL(element).flatMap { FixtureIconResolver.allowed($0) ? $0 : nil }
+                let url = documentURL(element).flatMap { FixtureIconResolver.allowedPage($0) ? $0 : nil }
                 guard let url else {
                     DispatchQueue.main.async { finish(window, key, nil, nil) }
                     return
@@ -28,13 +28,19 @@ final class NativeBrowserIconPrototype {
                     DispatchQueue.main.async { pending.remove(key) }
                     return
                 }
-                FixtureIconResolver.resolve(url) { data in
+                FixtureIconResolver.resolveArtwork(url) { artwork in
                     queue.async {
                         guard documentURL(element) == url else {
-                            DispatchQueue.main.async { pending.remove(key); cache.removeValue(forKey: key) }
+                            Logger.info { "native fixture discarded obsolete result" }
+                            DispatchQueue.main.async {
+                                pending.remove(key)
+                                if retryBudget > 0, Windows.list.contains(where: { $0 === window }) {
+                                    _ = icon(for: window, retryBudget: retryBudget - 1)
+                                }
+                            }
                             return
                         }
-                        let image = data.flatMap { FixtureIconResolver.image($0) }
+                        let image = artwork?.image
                         DispatchQueue.main.async { finish(window, key, url, image) }
                     }
                 }

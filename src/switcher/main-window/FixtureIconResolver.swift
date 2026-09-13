@@ -1,26 +1,39 @@
 import Foundation
 import ImageIO
 
-/// Deliberately restricted experiment: no external hosts, cookies, credentials, scripts, browser databases, or extensions.
+/// Restricted experiment: loopback fixtures or explicitly reviewed public URLs, without browser credentials or extensions.
 final class FixtureIconResolver: NSObject, URLSessionTaskDelegate {
+    private static func canonical(_ url: URL) -> String {
+        guard var parts = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return "" }
+        parts.fragment = nil
+        if parts.path.isEmpty { parts.path = "/" }
+        return parts.string ?? ""
+    }
+    private static func listed(_ url: URL, _ key: String) -> Bool {
+        guard url.scheme == "https", url.user == nil, url.password == nil else { return false }
+        return (ProcessInfo.processInfo.environment[key] ?? "").split(separator: "|")
+            .compactMap { URL(string: String($0)) }.contains { canonical($0) == canonical(url) }
+    }
+    static func allowedPage(_ url: URL) -> Bool {
+        (url.scheme == "http" && url.host == "127.0.0.1" && url.port == 18769 && url.user == nil && url.password == nil)
+            || listed(url, "ALTTAB_NATIVE_ICON_TEST_PAGES")
+    }
     static func allowed(_ url: URL) -> Bool {
-        url.scheme == "http" && url.host == "127.0.0.1" && url.port == 18769 && url.user == nil && url.password == nil
+        allowedPage(url) || listed(url, "ALTTAB_NATIVE_ICON_TEST_ASSETS")
     }
-    private static let delegate = FixtureIconResolver()
-    private static let session: URLSession = {
-        let config = URLSessionConfiguration.ephemeral
-        config.httpCookieStorage = nil
-        config.urlCredentialStorage = nil
-        config.urlCache = nil
-        config.httpShouldSetCookies = false
-        config.timeoutIntervalForRequest = 2
-        config.timeoutIntervalForResource = 4
-        return URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
-    }()
-    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-                    newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
-        completionHandler(request.url.map(Self.allowed) == true ? request : nil)
+    struct Artwork {
+        let data: Data
+        let image: CGImage
     }
+    private struct Entry {
+        let artwork: Artwork?
+        let expires: Date
+    }
+    private static let queue = DispatchQueue(label: "local.fixture-icon-cache", qos: .utility)
+    private static var cache: [URL: Entry] = [:]
+    private static var pending: [URL: [(Artwork?) -> Void]] = [:]
+    private static var images: [URL: Entry] = [:]
+    private static var pendingImages: [URL: [(Artwork?) -> Void]] = [:]
     static func image(_ data: Data) -> CGImage? {
         guard data.count <= 1_048_576, let source = CGImageSourceCreateWithData(data as CFData, nil),
               let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
@@ -41,27 +54,139 @@ final class FixtureIconResolver: NSObject, URLSessionTaskDelegate {
         }
         return Array(links.prefix(8)) + [URL(string: "/favicon.ico", relativeTo: page)!.absoluteURL]
     }
-    private static func fetch(_ url: URL, _ completion: @escaping (Data?, URL) -> Void) {
-        guard allowed(url) else { completion(nil, url); return }
-        session.dataTask(with: url) { data, response, _ in
-            guard let response = response as? HTTPURLResponse, response.statusCode == 200,
-                  let finalURL = response.url, allowed(finalURL), let data, data.count <= 1_048_576 else {
-                completion(nil, url); return
-            }
-            completion(data, finalURL)
-        }.resume()
+    private static func fetch(_ url: URL, headOnly: Bool = false, _ completion: @escaping (Data?, URL) -> Void) {
+        FixtureTransfer.shared.fetch(url, headOnly: headOnly, completion)
     }
     static func resolve(_ page: URL, completion: @escaping (Data?) -> Void) {
-        fetch(page) { data, finalURL in
-            guard let data else { completion(nil); return }
-            next(candidates(data, page: finalURL), completion)
+        resolveArtwork(page) { completion($0?.data) }
+    }
+    static func resolveArtwork(_ page: URL, completion: @escaping (Artwork?) -> Void) {
+        queue.async {
+            guard allowedPage(page) else { completion(nil); return }
+            if let entry = cache[page], entry.expires > Date() { completion(entry.artwork); return }
+            if pending[page] != nil { pending[page]!.append(completion); return }
+            pending[page] = [completion]
+            fetch(page, headOnly: true) { data, finalURL in
+                guard let data else { complete(page, nil); return }
+                next(candidates(data, page: finalURL)) { complete(page, $0) }
+            }
         }
     }
-    private static func next(_ urls: [URL], _ completion: @escaping (Data?) -> Void) {
+    private static func complete(_ page: URL, _ artwork: Artwork?) {
+        queue.async {
+            cache = cache.filter { $0.value.expires > Date() }
+            if cache.count >= 32, let oldest = cache.min(by: { $0.value.expires < $1.value.expires }) { cache.removeValue(forKey: oldest.key) }
+            cache[page] = Entry(artwork: artwork, expires: Date().addingTimeInterval(artwork == nil ? 5 : 30))
+            let callbacks = pending.removeValue(forKey: page) ?? []
+            callbacks.forEach { $0(artwork) }
+        }
+    }
+    private static func next(_ urls: [URL], _ completion: @escaping (Artwork?) -> Void) {
         guard let first = urls.first else { completion(nil); return }
-        fetch(first) { data, _ in
-            if let data, image(data) != nil { completion(data) }
+        sharedImage(first) { artwork in
+            if let artwork { completion(artwork) }
             else { next(Array(urls.dropFirst()), completion) }
         }
+    }
+    private static func sharedImage(_ url: URL, _ completion: @escaping (Artwork?) -> Void) {
+        queue.async {
+            if let entry = images[url], entry.expires > Date() { completion(entry.artwork); return }
+            if pendingImages[url] != nil { pendingImages[url]!.append(completion); return }
+            pendingImages[url] = [completion]
+            fetch(url) { data, _ in
+                let artwork = data.flatMap { data in image(data).map { Artwork(data: data, image: $0) } }
+                queue.async {
+                    images = images.filter { $0.value.expires > Date() }
+                    if images.count >= 32, let oldest = images.min(by: { $0.value.expires < $1.value.expires }) { images.removeValue(forKey: oldest.key) }
+                    images[url] = Entry(artwork: artwork, expires: Date().addingTimeInterval(artwork == nil ? 5 : 30))
+                    let callbacks = pendingImages.removeValue(forKey: url) ?? []
+                    callbacks.forEach { $0(artwork) }
+                }
+            }
+        }
+    }
+
+}
+
+/// A shared session streams into a capped buffer; oversized and off-origin responses are cancelled.
+private final class FixtureTransfer: NSObject, URLSessionDataDelegate {
+    static let shared = FixtureTransfer()
+    private struct Transfer {
+        var data = Data()
+        var url: URL
+        var valid = false
+        var completedHead = false
+        let headOnly: Bool
+        var redirects = 0
+        let completion: (Data?, URL) -> Void
+    }
+    private let lock = NSLock()
+    private var transfers: [Int: Transfer] = [:]
+    private let limit = 1_048_576
+    private lazy var session: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.httpCookieStorage = nil
+        config.urlCredentialStorage = nil
+        config.urlCache = nil
+        config.httpShouldSetCookies = false
+        config.timeoutIntervalForRequest = 2
+        config.timeoutIntervalForResource = 4
+        config.httpMaximumConnectionsPerHost = 4
+        let delegateQueue = OperationQueue()
+        delegateQueue.maxConcurrentOperationCount = 1
+        delegateQueue.qualityOfService = .utility
+        return URLSession(configuration: config, delegate: self, delegateQueue: delegateQueue)
+    }()
+    func fetch(_ url: URL, headOnly: Bool, _ completion: @escaping (Data?, URL) -> Void) {
+        guard FixtureIconResolver.allowed(url) else { completion(nil, url); return }
+        lock.lock()
+        let task = session.dataTask(with: url)
+        transfers[task.taskIdentifier] = Transfer(url: url, headOnly: headOnly, completion: completion)
+        lock.unlock()
+        task.resume()
+    }
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
+                    completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        lock.lock()
+        let headOnly = transfers[dataTask.taskIdentifier]?.headOnly == true
+        lock.unlock()
+        let valid = (response as? HTTPURLResponse)?.statusCode == 200
+            && response.url.map(FixtureIconResolver.allowed) == true && (headOnly || response.expectedContentLength <= limit)
+        lock.lock()
+        transfers[dataTask.taskIdentifier]?.valid = valid
+        if let url = response.url { transfers[dataTask.taskIdentifier]?.url = url }
+        lock.unlock()
+        completionHandler(valid ? .allow : .cancel)
+    }
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        lock.lock()
+        let overflow = (transfers[dataTask.taskIdentifier]?.data.count ?? limit) + data.count > limit
+        if !overflow {
+            transfers[dataTask.taskIdentifier]?.data.append(data)
+            if let transfer = transfers[dataTask.taskIdentifier], transfer.headOnly,
+               let text = String(data: transfer.data, encoding: .utf8),
+               let end = text.range(of: "</head>", options: .caseInsensitive) {
+                transfers[dataTask.taskIdentifier]?.data = Data(text[..<end.upperBound].utf8)
+                transfers[dataTask.taskIdentifier]?.completedHead = true
+            }
+        }
+        let completedHead = transfers[dataTask.taskIdentifier]?.completedHead == true
+        lock.unlock()
+        if overflow || completedHead { dataTask.cancel() }
+    }
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        lock.lock()
+        let transfer = transfers.removeValue(forKey: task.taskIdentifier)
+        lock.unlock()
+        guard let transfer else { return }
+        transfer.completion((error == nil || transfer.completedHead) && transfer.valid ? transfer.data : nil, transfer.url)
+    }
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
+                    newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        lock.lock()
+        transfers[task.taskIdentifier]?.redirects += 1
+        let count = transfers[task.taskIdentifier]?.redirects ?? 4
+        lock.unlock()
+        completionHandler(count <= 3 && request.url.map(FixtureIconResolver.allowed) == true ? request : nil)
     }
 }

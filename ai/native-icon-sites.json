@@ -1,0 +1,18 @@
+{
+  "pages": [
+    "https://www.nrk.no/",
+    "https://www.vg.no/",
+    "https://www.tek.no/",
+    "https://github.com/",
+    "https://www.youtube.com/"
+  ],
+  "assets": [
+    "https://static.nrk.no/publisering/kurator-visning/assets/favicon-32x32.png",
+    "https://www.vg.no/vgc/cdn/vgno/assets/favicon.png",
+    "https://www.tek.no/assets/favicon-32x32.png",
+    "https://github.githubassets.com/favicons/favicon.png",
+    "https://www.youtube.com/s/desktop/e60429bd/img/favicon_144x144.png",
+    "https://m.youtube.com/",
+    "https://m.youtube.com/static/favicon.ico"
+  ]
+}

@@ -1,3 +1,62 @@
+# Native icon stress and real-site follow-up, 2026-09-13
+
+The updated prototype was visually verified in the **actual AltTab switcher** with VG in Safari, NRK in Safari and Chrome, Tek in Safari, GitHub in Safari and YouTube in Chrome. The user also confirmed seeing the controlled red/blue demonstration. This was not the standalone Safari Icon Preview.
+
+## Changes and measurements
+
+- Share in-flight page requests and decoded artwork. Different pages referencing one asset share its download and decoded image. Cache at most 32 page entries and 32 asset entries, with 30-second positive and 5-second negative lifetimes. Window-level unchanged-URL freshness remains a separate unresolved limit.
+- Stream with a 1MiB retained-buffer cap, reject oversized declared bodies, cap redirects at three, and limit connections per host to four. Page requests stop after the HTML head, avoiding downloading a large body merely to find icon links. No scripts are executed and no browser cookies or credentials are imported.
+- Preserve the last ready image when discarding an obsolete completion and immediately retry the current URL with a bounded retry budget. A live Chrome fixture automatically navigated while its slow icon was pending: the log recorded the obsolete result discarded, then the blue destination image applied to the tile. This is one controlled race, not exhaustive lifecycle coverage.
+
+The final standalone stress run completed in 0.93 seconds, with 0.04 seconds user CPU and 0.01 seconds system CPU. Maximum resident size was 20,168,704 bytes, and reported peak footprint was 7,701,176 bytes. These belong to the isolated resolver executable, **not total AltTab or browser memory**.
+
+| Workload | Observed result |
+| --- | --- |
+| 128 callers for a page delayed 600ms | One page fetch, one icon fetch; p95 626.9ms including intentional delay |
+| 1,000 subsequent callers | Shared decoded bitmap; p95 0.080ms; no new requests |
+| 16 distinct pages sharing artwork | 16 page fetches, one asset fetch; p95 8.69ms; identical CGImage reused |
+| 128 missing-icon callers | One page fetch and one failed favicon request; p95 2.83ms |
+| Oversized declared/chunked bodies, external redirect, redirect loop | Rejected; loop stops after three redirects |
+| Allowed local redirect | Resolved correctly |
+
+Before asset coalescing, the same 16-page experiment fetched its common artwork repeatedly. The post-change server counters and image-identity assertions verify that this duplicate work was removed. These single local runs are useful regression checks, not statistically robust production benchmarks. The integrated build also ran repeated automatic switcher openings, but there is no matched baseline for its CPU, memory, wakeups or input latency.
+
+## Current user-testable state
+
+The real-site prototype was left running without the automatic benchmark after verification. Its containing app is still a separate development build; `/Applications/AltTab.app` was not overwritten. The old standalone Safari Icon Preview and the local fixture server were stopped. The task-created GitHub Safari window and YouTube Chrome window were left open for user testing; unrelated windows were preserved. Only the reviewed homepages are eligible, not arbitrary article pages or browsing URLs. Restarting the installed app restores its normal provider.
+
+## Real-site test policy and results
+
+`ai/native-icon-sites.json` lists five explicit public homepage URLs and their observed published icon URLs. The code has no website-specific renderer or browser-name branch. The JSON is a reviewed experiment allowlist, not production site overrides. Article paths, query-bearing URLs and unrelated sites are not enabled. The list prevents scanning/refetching the user's whole browsing session while private-window handling remains unresolved.
+
+| Homepage | Native decoded artwork | One warm-network sample |
+| --- | --- | --- |
+| NRK | 32×32, 663 bytes | 202ms |
+| VG | 180×180, 1,575 bytes | 86ms |
+| Tek | 32×32, 1,340 bytes | 68ms |
+| GitHub | 32×32, 958 bytes | 181ms |
+| YouTube | 32×32, 5,430 bytes | 259ms |
+
+YouTube initially failed because URLSession received a redirect to its mobile homepage, outside the original allowlist. A direct diagnostic confirmed the redirect and published mobile favicon. Adding those two reviewed URLs allowed the generic resolver to succeed. This illustrates a fidelity difference from the user's desktop browser; no YouTube-specific retrieval code was added. Public-source requests are anonymous and may produce different HTML from a signed-in browser.
+
+For a fresh run, build as documented below and use:
+
+```sh
+python3 ai/native-icon-server.py
+swiftc src/switcher/main-window/FixtureIconResolver.swift ai/FixtureIconStressTests.swift -o /tmp/alttab-native-stress
+/usr/bin/time -l /tmp/alttab-native-stress
+swiftc src/switcher/main-window/FixtureIconResolver.swift ai/RealWebsiteIconTests.swift -o /tmp/alttab-real-icons
+python3 ai/run-native-icon-demo.py /tmp/alttab-real-icons
+# Quit the other AltTab instance before launching this separately built bundle.
+python3 ai/run-native-icon-demo.py /path/to/AltTab.app --logs=debug
+```
+
+The public-site demo does not need the local server. Open a listed homepage in Safari or Chrome and invoke AltTab normally. The helper only supplies environment variables to that process; it writes no persistent preferences or login item. The normal installed app does not acquire these options. Quit the prototype and reopen `/Applications/AltTab.app` to return to the installed build. The prototype's ordinary missing/unsupported-site fallback still uses the app icon; full globe and navigation state integration is unfinished.
+
+Sources: Apple's [streaming response/data delegate](https://developer.apple.com/documentation/foundation/urlsessiondatadelegate) and [connection limit](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/httpmaximumconnectionsperhost). Connection limits do not by themselves cap the number of queued logical resolutions. Before release, add global admission/cancellation budgets, robust private-mode policy, complete event coverage, supported-format and appearance tests, and matched full-process performance measurements.
+
+The earlier laboratory record follows for provenance. Its post-buffer limit and double-decoding limitations were addressed above; its other unverified release gates still apply.
+
 # Extension-free browser icon laboratory
 
 This branch demonstrates a shared in-process AltTab provider, not a release candidate. Ordinary launches continue using the existing provider. No browser extension, browser database, Apple Events, remote debugging, or extra helper permission is required by this experiment.

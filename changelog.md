@@ -1,3 +1,8 @@
+## Native browser icon stress and real-site experiment (2026-09-13)
+
+- Share repeated page/icon work and decoded artwork, cap streamed responses and redirects, and recover from obsolete navigation results.
+- Add reproducible load tests and a reviewed public-homepage demonstration for Safari and Chrome. Keep general browsing support disabled pending privacy and lifecycle validation.
+
 ## Native browser icon laboratory (2026-09-13)
 
 - Add an opt-in, extension-free provider shared by Safari and Chrome, restricted to controlled loopback fixtures. Normal runs retain the existing icon provider. See `docs/native-browser-icon-prototype.md` for evidence and limits.
