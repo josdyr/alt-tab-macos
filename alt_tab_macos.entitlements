@@ -4,10 +4,6 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<false/>
-	<key>com.apple.security.application-groups</key>
-	<array>
-		<string>79YY3FK495.com.josdyr.alttab-site-icons</string>
-	</array>
 	<key>com.apple.security.cs.disable-library-validation</key>
 	<true/>
 </dict>

@@ -65,28 +65,6 @@ selection, long app names, long titles, search, mirrored layout and style change
 The initial light Titles view was visually checked with Safari, Ghostty and Device
 Hub. Mirrored layout, dark appearance and search remain unverified visually.
 
-## Local Safari site icons
-
-`localSafariSiteIcons` defaults off. With the local companion installed and this
-Boolean enabled, Titles can display decoded PNGs from manually captured snapshots.
-File reads and decoding run on a utility queue; drawing uses cached images only.
-Snapshots older than 60 seconds and future timestamps are rejected. A record must
-match exactly one eligible Safari window by exact title and bounds within 2pt;
-duplicate records or native matches fall back. Application identity remains in
-the separate app-name column. This heuristic is experimental, not a stable native
-window identifier. Same-title navigation and profile identity are not established.
-
-The app group is specific to the local signing team and must not enter an upstream
-PR. Run `python3 scripts/local-tests/test-safari-icons.py` for eleven checks against
-the actual provider with model stubs. Live Safari exported two unambiguous matches
-and one usable 64px NRK icon. Rendering in the integrated build needs a fresh capture.
-
-
-Duplicate Safari title/bounds matches may share an icon only when browser/native
-candidate counts agree, browser IDs are unique, every image decodes, and all PNG
-payloads are identical. Conflicting or incomplete groups still fall back. This
-permits two identical BBC windows without claiming a unique window identity.
-
 ## Local Titles hover treatment
 
 Titles rows retain the hover background without an outline. Keyboard selection remains solid. Other appearance styles retain their existing border. The additional control for selecting on hover changes selection behavior, not hover feedback.

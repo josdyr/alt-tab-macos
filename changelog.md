@@ -1,3 +1,8 @@
+## Integrated website icons (2026-09-13)
+
+- Add general public HTTPS discovery, a default-off preference, private-window disclosure, globe fallback and cancellation.
+- Select one integrated implementation; remove the deprecated Safari companion receiver, its app-group entitlement and tests.
+
 ## Native icon upstream draft (2026-09-13)
 
 - Publish the isolated [native browser icon proposal](https://github.com/lwouis/alt-tab-macos/pull/6030), document its release gates and final checks, and share the self-contained test runner and launcher disclosure.
