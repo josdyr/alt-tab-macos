@@ -142,6 +142,14 @@ otherwise fitting titles. The panel's default maximum is 90% of the visible scre
 including outer panel padding. Text can still truncate at that physical limit.
 
 
+### Font changes between screens
+
+Auto size picks a different font on screens of different sizes. Title widths are
+measured with the current font on every layout, not with the attributes left on
+an unchanged title from the previous summon. Otherwise swapping to a larger display
+fits the panel to the old font's narrower width and truncates titles until the
+next summon.
+
 ### Titles width controls
 
 Appearance > Customize exposes native Minimum width and Maximum width sliders

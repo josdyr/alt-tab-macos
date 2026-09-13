@@ -1,3 +1,7 @@
+## Titles width after display changes (2026-09-13)
+
+- Measure window titles with the current font so switching between display sizes no longer truncates titles in a too-narrow panel.
+
 ## Integrated website icons (2026-09-13)
 
 - Add general public HTTPS discovery, a default-off preference, private-window disclosure, globe fallback and cancellation.

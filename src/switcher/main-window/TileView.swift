@@ -397,8 +397,11 @@ class TileView: FlippedView {
             setAccessibilityLabel(title)
         }
         fullTitle = title
-        fullTitleWidth = label.cell!.cellSize.width
         label.updateTruncationModeIfNeeded()
+        // Measure with the current font: an unchanged title still carries the previous summon's attributes,
+        // so a screen change that resizes the font would fit the panel to the old, narrower width.
+        label.attributedStringValue = NSAttributedString(string: title, attributes: baseTitleAttributes())
+        fullTitleWidth = label.cell!.cellSize.width
         if statusIcons.spaceVisible {
             let spaceIndex = element.spaceIndexes.first
             if element.isOnAllSpaces || (spaceIndex != nil && spaceIndex! > 30) {
