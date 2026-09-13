@@ -1,3 +1,7 @@
+## Local navigation correction (2026-09-13)
+
+- Keep up/down arrow selections when window titles update, including the first move after opening the switcher.
+
 ## Local candidate changes (2026-09-12)
 
 - Use the full fitted width for Titles rows, removing premature ellipses, and allow growth to 90% of the visible screen.

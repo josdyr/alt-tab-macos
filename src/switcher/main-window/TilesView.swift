@@ -428,6 +428,7 @@ class TilesView {
             return leadingSide ? NSMinX($0.frame) < originCenter : NSMaxX($0.frame) > originCenter
         }) ?? iterable.last else { return }
         guard let targetIndex = TilesView.recycledViews.firstIndex(of: targetView) else { return }
+        SwitcherSession.current?.userPickedSelection = true
         Windows.updateSelectedAndHoveredWindowIndex(targetIndex)
     }
 

@@ -216,3 +216,12 @@ tab-switch interval where attention still names the outgoing background tab.
 - **testUserPickedTargetIsFollowedNotRederived** — the same target, once the USER chose it, is followed (#5665).
 - **testDefaultDoesNotTrailAWindowThatSlidDownTheList** — the captured failure: the default locked onto a
   window that then slid down the list, dragging the highlight to a nonsense slot.
+
+## Arrow navigation during title updates
+
+A successful vertical arrow move commits the user's selected window before updating
+the highlight, like horizontal/Tab cycling. Repeated metadata refreshes must keep
+that identity even before any Tab press. Cover up/down in Titles and multi-column
+layouts, wrapping, and non-wrapping edge moves. A blocked move must not commit a
+new selection. Default selection before any user navigation retains its existing
+settling behavior.
