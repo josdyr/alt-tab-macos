@@ -1,5 +1,7 @@
 ## Local navigation correction (2026-09-13)
 
+- Preserve stationary mouse hover during title refreshes while still clearing it on keyboard navigation and pointer exit.
+
 - Clear remembered hover when leaving a row or navigating by keyboard, preventing title updates from restoring a dismissed highlight.
 
 - Keep up/down arrow selections when window titles update, including the first move after opening the switcher.

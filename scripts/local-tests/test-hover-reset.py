@@ -11,13 +11,32 @@ reset = method('src/switcher/main-window/TileOverView.swift',
                '    func resetHoveredWindow()', '    // MARK: - Window controls')
 refresh = method('src/switcher/state/Windows.swift',
                  '    private static func reanchorHover(', '    private static func applySelectionDecision(')
+selection = method('src/switcher/state/Windows.swift',
+                   '    private static func applySelectionDecision(', '    static func cycleSelectedWindowIndex(')
 fixture = """
+import Cocoa
+enum Activity { case focus, hover }
+enum Preferences { static var mouseHoverEnabled = false }
+enum WindowThumbnails {
+ static func previewSelectedIfNeeded() {}
+ static func fetchPreviewFrames() {}
+}
+final class Scroller { func scrollToVisible(_ frame: CGRect) {} }
+final class ScrollView { let contentView = Scroller() }
+struct Tile { let frame = CGRect.zero }
+
 final class SwitcherSession {
  static var current: SwitcherSession?
+ var selectedIndex = 0
+ var selectedTarget: String? = "a"
+ var userPickedSelection = true
  var hoveredIndex: Int?
  var hoveredTarget: String?
 }
 enum TilesView {
+ static let thumbnailOverView = Overlay()
+ static let recycledViews = [Tile(), Tile()]
+ static let scrollView = ScrollView()
  static var repaints = [Int]()
  static func highlight(_ index: Int) {
   precondition(SwitcherSession.current?.hoveredTarget == nil ||
@@ -35,7 +54,16 @@ enum Windows {
  struct Window { let id: String }
  static var list = [Window(id:"a"), Window(id:"b")]
 REFRESH
- static func refresh() { reanchorHover(SwitcherSession.current!) }
+SELECTION
+ static var lastWindowActivityType = Activity.focus
+ static func shouldDisplay(_ window: Window) -> Bool { true }
+ static func voiceOverWindow(_ index: Int) {}
+ static func refresh() {
+  let session = SwitcherSession.current!
+  applySelectionDecision(.selectAt(session.selectedIndex), session: session)
+  reanchorHover(session)
+ }
+
 }
 @main struct Regression {
  static func main() {
@@ -62,12 +90,27 @@ REFRESH
    Windows.refresh()
    precondition(session.hoveredIndex == nil && session.hoveredTarget == nil)
   }
+  // A stationary pointer must keep hover through the full selection-refresh path.
+  for mouseSelects in [false, true] {
+   Preferences.mouseHoverEnabled = mouseSelects
+   let session = SwitcherSession(); SwitcherSession.current = session
+   Windows.list = [.init(id:"a"), .init(id:"b")]
+   Windows.updateSelectedAndHoveredWindowIndex(1, true)
+   for _ in 0..<100 {
+    Windows.refresh()
+    precondition(session.hoveredIndex == 1 && session.hoveredTarget == "b",
+                 "Title refresh cleared stationary hover")
+   }
+   Windows.updateSelectedAndHoveredWindowIndex(0)
+   Windows.refresh()
+   precondition(session.hoveredIndex == nil && session.hoveredTarget == nil)
+  }
   SwitcherSession.current = nil
   overlay.resetHoveredWindow()
-  print("Hover reset passed: 200 refreshes, stale identity, reordering, repeated reset, no session")
+  print("Hover passed: 400 refreshes, stationary pointer, both hover modes, keyboard dismissal, stale identity, reordering, repeated reset, no session")
  }
 }
-""".replace('RESET', reset).replace('REFRESH', refresh)
+""".replace('RESET', reset).replace('REFRESH', refresh).replace('SELECTION', selection)
 with tempfile.TemporaryDirectory() as tmp:
     tmp = Path(tmp)
     (tmp/'test.swift').write_text(fixture)

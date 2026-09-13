@@ -325,7 +325,7 @@ class Windows {
         case .resetWithoutSelection:
             resetForInitialPick(session)
         case .selectAt(let idx):
-            updateSelectedAndHoveredWindowIndex(idx)
+            updateSelectedAndHoveredWindowIndex(idx, preservingHover: true)
         case .ensureTargetSet(let idx):
             if session.selectedTarget == nil && idx < list.count {
                 session.selectedTarget = list[idx].id
@@ -348,7 +348,7 @@ class Windows {
         }
     }
 
-    static func updateSelectedAndHoveredWindowIndex(_ newIndex: Int, _ fromMouse: Bool = false) {
+    static func updateSelectedAndHoveredWindowIndex(_ newIndex: Int, _ fromMouse: Bool = false, preservingHover: Bool = false) {
         guard let session = SwitcherSession.current else { return }
         guard newIndex >= 0 && newIndex < list.count else { return }
         let newWindow = list[newIndex]
@@ -365,7 +365,7 @@ class Windows {
             index = session.hoveredIndex
             lastWindowActivityType = .hover
         }
-        if !fromMouse {
+        if !fromMouse && !preservingHover {
             TilesView.thumbnailOverView.resetHoveredWindow()
         }
         // Search can replace the best match at the same index. Its identity must still move so the
