@@ -1,3 +1,7 @@
+## Titles app names after the widest title shrinks (2026-09-13)
+
+- Stop capping the app-name column to 25% of the content-fitted panel, which truncated names like "RoutineGui…" once a longer title (e.g. a terminal spinner) went away.
+
 ## Titles width after display changes (2026-09-13)
 
 - Measure window titles with the current font so switching between display sizes no longer truncates titles in a too-narrow panel.

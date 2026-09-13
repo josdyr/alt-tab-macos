@@ -119,7 +119,9 @@ to the longest row with a configurable minimum (300pt by default), bounded by th
 maximum. Recompute on every content layout so closing or renaming the longest
 window can shrink the open panel. Selection changes alone do not change its width.
 App-name measurement can shrink outside search; search retains its existing column
-stability. App names remain capped to 25% of the fitted row and 240pt.
+stability. App names remain capped to 25% of the maximum (screen-bounded) row and 240pt,
+never of the fitted row: the fitted width already includes the full column, and
+re-capping against it truncated names whenever the widest title got shorter.
 
 Design reference: [Apple layout guidance](https://developer.apple.com/design/human-interface-guidelines/layout).
 The numeric bounds are local design choices, not Apple-prescribed constants.

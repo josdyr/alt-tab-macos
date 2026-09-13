@@ -510,8 +510,8 @@ class TilesView {
         layoutCache.fittedTitlesWidth = AppearanceTestable.stableTitlesWidth(
             measured: measured + Appearance.interCellPadding * 2, limit: limit,
             previous: previous, tolerance: max(24, Appearance.font.pointSize * 2), minimum: Preferences.titlesMinimumWidth)
-        layoutCache.appNameWidth = AppearanceTestable.appNameColumnWidth(measured: layoutCache.appNameWidth,
-            previous: 0, rowWidth: TileView.maxThumbnailWidth())
+        // ponytail: the app-name column stays capped against the unfitted row (updateAppNameColumnWidth). Re-capping
+        // against this fitted width truncated names once the widest title shrank, e.g. a terminal spinner stopping.
     }
 
     static func currentScrollOrigin() -> CGPoint {
