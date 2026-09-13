@@ -227,3 +227,5 @@ new selection. Default selection before any user navigation retains its existing
 settling behavior.
 
 Closing transitions: a first row hidden before removal selects its next visible neighbor, and follows that neighbor by identity after removal. Hidden successors are skipped; closing the last row selects the last survivor. This policy is independent of browser or layout type.
+
+Explicit window actions capture visible successors, followed by preceding neighbors in reverse order. If the acted-on window stops being visible, choose the first surviving captured identity, regardless of intervening focus reordering. Retain the target if the action is cancelled or it remains visible. Explicit navigation clears the action fallback. This applies to close, quit, hide, and minimize without app-specific handling.

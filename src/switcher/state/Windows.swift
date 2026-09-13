@@ -238,6 +238,12 @@ class Windows {
         reanchorHover(session)
     }
 
+    static func prepareSelectedWindowAction() {
+        guard let session = SwitcherSession.current, let window = selectedWindow() else { return }
+        session.userPickedSelection = true
+        session.removalFallback = SelectionResolver.removalFallback(selectionSnapshot(), target: window.id)
+    }
+
     /// The kernel's view of this refresh, plus the one measurement that has to be taken on the FIRST one:
     /// how long the visible list was at the summon. It is read here rather than at the press because it needs
     /// `updatesBeforeShowing()`'s filtering to have run — and both happen in the same main-thread turn as the
@@ -256,7 +262,8 @@ class Windows {
             userPickedSelection: session.userPickedSelection,
             restoreDefaultOnSearchClear: shouldRestoreDefaultSelectionOnSearchClear,
             bestMatchOnSearchChange: shouldSelectBestMatchOnSearchChange,
-            currentWindowIsDrawn: currentWindowIsDrawn())
+            currentWindowIsDrawn: currentWindowIsDrawn(),
+            removalFallback: session.removalFallback)
     }
 
     private static func currentWindowIsDrawn() -> Bool {
@@ -365,6 +372,7 @@ class Windows {
             index = session.hoveredIndex
             lastWindowActivityType = .hover
         }
+        if !preservingHover { session.removalFallback = nil }
         if !fromMouse && !preservingHover {
             TilesView.thumbnailOverView.resetHoveredWindow()
         }

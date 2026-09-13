@@ -1,3 +1,7 @@
+## Local action selection correction (2026-09-13)
+
+- Preserve the next window by identity before close, hide, minimize, or quit actions, preventing focus-event reordering from skipping rows.
+
 ## Local closing correction (2026-09-13)
 
 - Select the next visible row when a closing window becomes hidden, preventing a first-row jump to the bottom.

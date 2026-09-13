@@ -26,6 +26,7 @@ final class ScrollView { let contentView = Scroller() }
 struct Tile { let frame = CGRect.zero }
 
 final class SwitcherSession {
+ var removalFallback: SelectionRemovalFallback?
  static var current: SwitcherSession?
  var selectedIndex = 0
  var selectedTarget: String? = "a"
@@ -96,12 +97,15 @@ SELECTION
    let session = SwitcherSession(); SwitcherSession.current = session
    Windows.list = [.init(id:"a"), .init(id:"b")]
    Windows.updateSelectedAndHoveredWindowIndex(1, true)
+   session.removalFallback = .init(target: "b", candidates: ["a"])
    for _ in 0..<100 {
     Windows.refresh()
+    precondition(session.removalFallback != nil, "Refresh discarded action intent")
     precondition(session.hoveredIndex == 1 && session.hoveredTarget == "b",
                  "Title refresh cleared stationary hover")
    }
    Windows.updateSelectedAndHoveredWindowIndex(0)
+   precondition(session.removalFallback == nil, "Navigation retained old action intent")
    Windows.refresh()
    precondition(session.hoveredIndex == nil && session.hoveredTarget == nil)
   }

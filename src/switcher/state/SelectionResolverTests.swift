@@ -13,6 +13,27 @@ import XCTest
 ///   - EdgeCases (E): corruption, single-window flips, multi-step sequences
 final class SelectionResolverTests: XCTestCase {
 
+    func testActionRemovalUsesNeighborBeforeFocusReorder() {
+        let original = [w("closing"), w("next"), w("last")]
+        var i = inputs(list: [w("next"), w("closing"), w("last")], selectedIndex: 1, selectedTarget: "closing")
+        i.removalFallback = SelectionResolver.removalFallback(original, target: "closing")
+        XCTAssertEqual(SelectionResolver.decide(i), .selectAt(1))
+        i = SelectionInputs(list: [w("next"), w("last")], selectedIndex: 1, selectedTarget: "closing", useLastFocusedRule: false, visibleCountAtSummon: 3, userPickedSelection: true, restoreDefaultOnSearchClear: false, bestMatchOnSearchChange: false, removalFallback: i.removalFallback)
+        XCTAssertEqual(SelectionResolver.decide(i), .selectAt(0))
+    }
+
+    func testActionRemovalSkipsAllClosedOrHiddenAppWindows() {
+        var i = inputs(list: [w("sameApp", visible: false), w("nextApp"), w("previous")], selectedIndex: 2, selectedTarget: "closing")
+        i.removalFallback = SelectionResolver.removalFallback([w("previous"), w("closing"), w("sameApp"), w("nextApp")], target: "closing")
+        XCTAssertEqual(SelectionResolver.decide(i), .selectAt(1))
+    }
+
+    func testActionFallbackDoesNotOverrideNewUserSelection() {
+        var i = inputs(list: [w("next"), w("chosen")], selectedIndex: 1, selectedTarget: "chosen")
+        i.removalFallback = SelectionResolver.removalFallback([w("closing"), w("next"), w("chosen")], target: "closing")
+        XCTAssertEqual(SelectionResolver.decide(i), .selectAt(1))
+    }
+
     // MARK: - Builders
 
     /// Concise window builder. Defaults model the common case: visible, non-minimized, non-windowless.
