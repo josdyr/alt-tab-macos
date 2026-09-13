@@ -1,3 +1,7 @@
+## Snappier close and quit from the switcher (2026-09-13)
+
+- Closed windows leave the switcher about 50ms after the key instead of about 320ms, and quitting an app hides its rows immediately (they return if it doesn't quit within 5 seconds).
+
 ## Live website icons in the open switcher (2026-09-13)
 
 - Windows opened while the switcher is open, and pages still loading, now get their website icon without closing and reopening the switcher. A missing web area is retried briefly, results are re-checked only when a window title changes, and windows without a web area no longer trigger repeated lookups.

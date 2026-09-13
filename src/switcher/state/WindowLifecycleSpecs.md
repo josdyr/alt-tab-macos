@@ -61,3 +61,13 @@ completion durations at info level. This distinguishes a busy Accessibility serv
 second), queue contention, and delayed main-thread preview cleanup. An already-running IPC cannot be
 cancelled or guaranteed instantaneous. End-to-end preview timing remains to be measured with the installed
 build; standalone API timings are not proof of that handoff.
+
+## Closing and quitting from the switcher
+
+- A window closed from the switcher skips the 150ms settle delay before its AX-end query. The AX and WindowServer
+  queries still decide, so a window that survives its close stays listed. Measured on macOS 27 with Chrome: the row is
+  gone about 50ms after the key, down from about 320ms.
+- Window removals refresh the open switcher immediately instead of through the 200ms UI throttle, which is always busy
+  when any title has a spinner.
+- Quitting an app from the switcher hides its rows immediately instead of waiting for it to finish terminating. If it's
+  still running 5 seconds later (a save dialog, a cancelled quit), its rows return. A second quit still force-quits.
