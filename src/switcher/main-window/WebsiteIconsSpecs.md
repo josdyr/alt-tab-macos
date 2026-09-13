@@ -38,6 +38,10 @@ Settings > Appearance > Show website icons.
 
 ## States
 
+- Icons update live while the switcher is open. A result stands until the window's title changes (navigation), which
+  starts a new lookup. A window that appears while the switcher is open, or a page still loading, is retried after
+  0.25, 0.5, 1 and 2 seconds. Windows without a web area ignore title changes, so a spinner in a terminal title costs
+  nothing. No retry runs while the switcher is closed.
 - While a window navigates, its icon stays; if the URL is briefly unavailable, the last icon is kept for 8 seconds.
 - A web page without usable artwork shows a globe. Other windows (settings, new tab pages) keep the browser icon.
 - Private windows can't be detected, so the setting's description says requests also happen for them.

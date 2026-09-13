@@ -1,3 +1,7 @@
+## Live website icons in the open switcher (2026-09-13)
+
+- Windows opened while the switcher is open, and pages still loading, now get their website icon without closing and reopening the switcher. A missing web area is retried briefly, results are re-checked only when a window title changes, and windows without a web area no longer trigger repeated lookups.
+
 ## Website icons tidy-up (2026-09-13)
 
 - Rename the feature to WebsiteIcons, WebsiteIconResolver and WebsiteIconRenderer, remove the test-only laboratory mode and extension-era renderer inputs, and move checks into the unit-test target (`WebsiteIconsTests.swift`, `WebsiteIconsSpecs.md`).
